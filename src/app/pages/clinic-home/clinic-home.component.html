@@ -234,163 +234,166 @@
     }
   }
 
-  <!-- ============================================================== -->
-  <!-- LIVE CONSULTATION QUEUE MODAL (TRACK FROM HOMEPAGE)            -->
-  <!-- ============================================================== -->
-  @if (isQueueModalOpen() && trackingAppointment()) {
-    <div class="modal-backdrop p-0 sm:p-4 items-end sm:items-center">
-      <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-slide-up">
-        
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold text-sm shrink-0">
-              {{ trackingAppointment()?.doctorName ? (trackingAppointment()!.doctorName! | slice: 0:2 | uppercase) : 'DR' }}
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-sm font-bold text-slate-900 truncate">{{ trackingAppointment()?.doctorName }}</h3>
-              <p class="text-[11px] text-slate-500 truncate">{{ trackingAppointment()?.department || 'Consultation Room' }} &bull; Live Queue Status</p>
-            </div>
-          </div>
+</div>
 
-          <button 
-            type="button" 
-            (click)="closeLiveTracker()"
-            class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer text-sm">
-            ✕
-          </button>
+<!-- ============================================================== -->
+<!-- LIVE CONSULTATION QUEUE MODAL (TRACK FROM HOMEPAGE)            -->
+<!-- ============================================================== -->
+@if (isQueueModalOpen() && trackingAppointment()) {
+  <div class="modal-backdrop" (click)="closeLiveTracker()">
+    <div
+      class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-slide-up"
+      style="margin-top: auto;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold text-sm shrink-0">
+            {{ trackingAppointment()?.doctorName ? (trackingAppointment()!.doctorName! | slice: 0:2 | uppercase) : 'DR' }}
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-sm font-bold text-slate-900 truncate">{{ trackingAppointment()?.doctorName }}</h3>
+            <p class="text-[11px] text-slate-500 truncate">{{ trackingAppointment()?.department || 'Consultation Room' }} &bull; Live Queue Status</p>
+          </div>
         </div>
 
-        <!-- Real-Time In-Room Consultation Status -->
-        <!-- In-Room Doctor Status Card -->
-        <div class="rounded-xl p-4 border bg-slate-50 border-slate-200">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-              @if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Doctor Online & Arrived</span>
-              } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span>Doctor On Break</span>
-              } @else {
-                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span>Doctor Offline</span>
-              }
-            </span>
-            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
-              @if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
-                Temporarily on Break
-              } @else if (trackingLiveStatus()?.currentPatient) {
-                Consultation in Progress
-              } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
-                Waiting for Next Patient
-              } @else {
-                Not in Room Yet
-              }
-            </span>
+        <button
+          type="button"
+          (click)="closeLiveTracker()"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer text-sm">
+          ✕
+        </button>
+      </div>
+
+      <!-- Real-Time In-Room Consultation Status -->
+      <!-- In-Room Doctor Status Card -->
+      <div class="rounded-xl p-4 border bg-slate-50 border-slate-200">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+            @if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Doctor Online &amp; Arrived</span>
+            } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>Doctor On Break</span>
+            } @else {
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <span>Doctor Offline</span>
+            }
+          </span>
+          <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
+            @if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
+              Temporarily on Break
+            } @else if (trackingLiveStatus()?.currentPatient) {
+              Consultation in Progress
+            } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
+              Waiting for Next Patient
+            } @else {
+              Not in Room Yet
+            }
+          </span>
+        </div>
+
+        @if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
+          <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-amber-800 text-xs">
+            <p class="font-semibold">Doctor is currently on a short break.</p>
+            <p class="text-[11px] text-amber-700 mt-0.5">Please wait in the waiting area. Queue will resume as soon as the doctor returns.</p>
           </div>
-
-          @if (trackingLiveStatus()?.doctor?.consultationStatus === 'break') {
-            <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-amber-800 text-xs">
-              <p class="font-semibold">Doctor is currently on a short break.</p>
-              <p class="text-[11px] text-amber-700 mt-0.5">Please wait in the waiting area. Queue will resume as soon as the doctor returns.</p>
+        } @else if (trackingLiveStatus()?.currentPatient) {
+          <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+            <div>
+              <p class="text-xs text-slate-500">Currently in Room</p>
+              <p class="text-sm font-bold text-slate-900">{{ trackingLiveStatus()!.currentPatient!.patientName }}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Started at {{ trackingLiveStatus()!.currentPatient!.appointmentTime }}</p>
             </div>
-          } @else if (trackingLiveStatus()?.currentPatient) {
-            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
-              <div>
-                <p class="text-xs text-slate-500">Currently in Room</p>
-                <p class="text-sm font-bold text-slate-900">{{ trackingLiveStatus()!.currentPatient!.patientName }}</p>
-                <p class="text-[11px] text-slate-500 mt-0.5">Started at {{ trackingLiveStatus()!.currentPatient!.appointmentTime }}</p>
+
+            @if (trackingLiveStatus()!.currentPatient!.tokenNumber) {
+              <div class="text-right">
+                <span class="text-[9px] font-bold text-slate-400 block uppercase">Current Token</span>
+                <span class="px-2.5 py-1 rounded font-mono text-sm font-bold bg-slate-100 text-slate-800 border border-slate-300 inline-block">
+                  #{{ trackingLiveStatus()!.currentPatient!.tokenNumber }}
+                </span>
               </div>
+            }
+          </div>
+        } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
+          <p class="text-xs text-emerald-700 py-1 font-medium">Doctor is in the consultation room and ready for the next patient.</p>
+        } @else {
+          <p class="text-xs text-slate-500 py-1">Doctor has not arrived in the consultation room yet. Scheduled time: {{ trackingAppointment()?.appointmentTime }}</p>
+        }
+      </div>
 
-              @if (trackingLiveStatus()!.currentPatient!.tokenNumber) {
-                <div class="text-right">
-                  <span class="text-[9px] font-bold text-slate-400 block uppercase">Current Token</span>
-                  <span class="px-2.5 py-1 rounded font-mono text-sm font-bold bg-slate-100 text-slate-800 border border-slate-300 inline-block">
-                    #{{ trackingLiveStatus()!.currentPatient!.tokenNumber }}
-                  </span>
-                </div>
-              }
-            </div>
-          } @else if (trackingLiveStatus()?.doctor?.consultationStatus === 'online') {
-            <p class="text-xs text-emerald-700 py-1 font-medium">Doctor is in the consultation room and ready for the next patient.</p>
+      <!-- Caller's Token Position in Queue -->
+      <div class="bg-sky-50 border border-sky-100 rounded-2xl p-4 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold text-sky-700 uppercase tracking-wider block">Your Allotted Token</span>
+          <span class="text-lg font-black font-mono text-sky-950">
+            Token #{{ trackingAppointment()?.tokenNumber || '-' }}
+          </span>
+          <p class="text-xs text-slate-600 mt-0.5">Allotted Time: <strong>{{ trackingAppointment()?.appointmentTime }}</strong></p>
+        </div>
+
+        <div class="text-right">
+          @if (trackingLiveStatus()?.yourStatus?.position) {
+            <span class="text-[10px] font-bold text-slate-500 uppercase block">Queue Position</span>
+            <span class="text-sm font-bold text-sky-700">
+              {{ trackingLiveStatus()!.yourStatus!.position === 1 ? 'Next in Line!' : (trackingLiveStatus()!.yourStatus!.position! - 1) + ' patient(s) ahead' }}
+            </span>
           } @else {
-            <p class="text-xs text-slate-500 py-1">Doctor has not arrived in the consultation room yet. Scheduled time: {{ trackingAppointment()?.appointmentTime }}</p>
+            <span class="text-xs text-slate-500">Patient: <strong>{{ trackingAppointment()?.patientName }}</strong></span>
           }
         </div>
+      </div>
 
-        <!-- Caller's Token Position in Queue -->
-        <div class="bg-sky-50 border border-sky-100 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span class="text-[10px] font-bold text-sky-700 uppercase tracking-wider block">Your Allotted Token</span>
-            <span class="text-lg font-black font-mono text-sky-950">
-              Token #{{ trackingAppointment()?.tokenNumber || '-' }}
-            </span>
-            <p class="text-xs text-slate-600 mt-0.5">Allotted Time: <strong>{{ trackingAppointment()?.appointmentTime }}</strong></p>
-          </div>
+      <!-- Queue Summary Metrics -->
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <span class="text-[10px] text-slate-400 block uppercase font-medium">In Queue</span>
+          <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.totalInQueue ?? '-' }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <span class="text-[10px] text-slate-400 block uppercase font-medium">Completed</span>
+          <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.completedToday ?? '-' }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <span class="text-[10px] text-slate-400 block uppercase font-medium">Remaining</span>
+          <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.doctor?.tokensRemainingToday ?? '-' }}</span>
+        </div>
+      </div>
 
-          <div class="text-right">
-            @if (trackingLiveStatus()?.yourStatus?.position) {
-              <span class="text-[10px] font-bold text-slate-500 uppercase block">Queue Position</span>
-              <span class="text-sm font-bold text-sky-700">
-                {{ trackingLiveStatus()!.yourStatus!.position === 1 ? 'Next in Line!' : (trackingLiveStatus()!.yourStatus!.position! - 1) + ' patient(s) ahead' }}
-              </span>
-            } @else {
-              <span class="text-xs text-slate-500">Patient: <strong>{{ trackingAppointment()?.patientName }}</strong></span>
+      <!-- Queue list preview if available -->
+      @if (trackingLiveStatus()?.upcomingPatients && trackingLiveStatus()!.upcomingPatients!.length > 0) {
+        <div class="space-y-2 pt-2">
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Next in Queue</h4>
+          <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+            @for (q of trackingLiveStatus()!.upcomingPatients!; track q.tokenNumber) {
+              <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs"
+                   [class]="q.tokenNumber === trackingAppointment()?.tokenNumber ? 'bg-sky-100/70 border-sky-300 font-semibold' : 'bg-white border-slate-100'">
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs font-bold text-sky-700">#{{ q.tokenNumber }}</span>
+                  <span class="text-slate-800 truncate">{{ q.patientName }}</span>
+                  @if (q.tokenNumber === trackingAppointment()?.tokenNumber) {
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-600 text-white uppercase">You</span>
+                  }
+                </div>
+                <span class="text-[11px] text-slate-400 font-mono">{{ q.appointmentTime }}</span>
+              </div>
             }
           </div>
         </div>
+      }
 
-        <!-- Queue Summary Metrics -->
-        <div class="grid grid-cols-3 gap-2 text-center text-xs">
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="text-[10px] text-slate-400 block uppercase font-medium">In Queue</span>
-            <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.totalInQueue ?? '-' }}</span>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="text-[10px] text-slate-400 block uppercase font-medium">Completed</span>
-            <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.completedToday ?? '-' }}</span>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="text-[10px] text-slate-400 block uppercase font-medium">Remaining</span>
-            <span class="text-sm font-bold text-slate-800">{{ trackingLiveStatus()?.doctor?.tokensRemainingToday ?? '-' }}</span>
-          </div>
-        </div>
-
-        <!-- Queue list preview if available -->
-        @if (trackingLiveStatus()?.upcomingPatients && trackingLiveStatus()!.upcomingPatients!.length > 0) {
-          <div class="space-y-2 pt-2">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Next in Queue</h4>
-            <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-              @for (q of trackingLiveStatus()!.upcomingPatients!; track q.tokenNumber) {
-                <div class="flex items-center justify-between p-2.5 rounded-xl border text-xs"
-                     [class]="q.tokenNumber === trackingAppointment()?.tokenNumber ? 'bg-sky-100/70 border-sky-300 font-semibold' : 'bg-white border-slate-100'">
-                  <div class="flex items-center gap-2">
-                    <span class="font-mono text-xs font-bold text-sky-700">#{{ q.tokenNumber }}</span>
-                    <span class="text-slate-800 truncate">{{ q.patientName }}</span>
-                    @if (q.tokenNumber === trackingAppointment()?.tokenNumber) {
-                      <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-600 text-white uppercase">You</span>
-                    }
-                  </div>
-                  <span class="text-[11px] text-slate-400 font-mono">{{ q.appointmentTime }}</span>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Footer -->
-        <div class="pt-2">
-          <button 
-            type="button" 
-            (click)="closeLiveTracker()"
-            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer">
-            Close Tracker
-          </button>
-        </div>
-
+      <!-- Footer -->
+      <div class="pt-2">
+        <button
+          type="button"
+          (click)="closeLiveTracker()"
+          class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer">
+          Close Tracker
+        </button>
       </div>
-    </div>
-  }
 
-</div>
+    </div>
+  </div>
+}

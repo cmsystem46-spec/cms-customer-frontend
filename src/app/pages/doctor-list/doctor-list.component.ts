@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClinicService } from '../../services/clinic.service';
 import { AuthService } from '../../services/auth.service';
+import { AppointmentService } from '../../services/appointment.service';
 import { DeviceService } from '../../services/device.service';
 import { HospitalInfo, Doctor, Department, Appointment, DoctorLiveStatus } from '../../models/clinic.model';
 import { BookingSheetComponent } from '../../components/booking-sheet/booking-sheet.component';
@@ -20,6 +21,7 @@ export class DoctorListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly clinicService = inject(ClinicService);
   private readonly authService = inject(AuthService);
+  private readonly appointmentService = inject(AppointmentService);
   private readonly deviceService = inject(DeviceService);
   readonly apiUrl = environment.apiUrl;
   readonly getImageUrl = getMediaUrl;
@@ -31,6 +33,14 @@ export class DoctorListComponent implements OnInit {
   readonly activeDepartmentName = signal<string | null>(null);
   readonly isLoading = signal<boolean>(true);
   readonly errorMessage = signal<string | null>(null);
+
+  // User's booked doctor IDs (for patient status privacy)
+  readonly userBookedDoctorIds = signal<Set<string>>(new Set());
+
+  /** Returns true if the current user has an active booking with this doctor */
+  hasBookingWithDoctor(doctorId: string): boolean {
+    return this.userBookedDoctorIds().has(doctorId);
+  }
 
   // Bottom Sheet Booking Trigger
   readonly isSheetOpen = signal<boolean>(false);
@@ -74,6 +84,8 @@ export class DoctorListComponent implements OnInit {
       next: (res) => {
         if (res.data) {
           this.hospital.set(res.data);
+
+          // Load doctors and user appointments in parallel
           this.clinicService.getDoctors(path, deptId || undefined, deptName || undefined).subscribe({
             next: (docRes) => {
               this.isLoading.set(false);
@@ -83,11 +95,52 @@ export class DoctorListComponent implements OnInit {
               this.isLoading.set(false);
             },
           });
+
+          // Fetch user's appointments to know which doctors they've booked with
+          this.loadUserBookedDoctors(res.data._id);
         }
       },
       error: (err) => {
         this.isLoading.set(false);
         this.errorMessage.set(err.error?.message || 'Could not load doctors.');
+      },
+    });
+  }
+
+  /** Loads user appointments and builds a set of doctor IDs the user has booked */
+  private loadUserBookedDoctors(hospitalId: string): void {
+    const currentUser = this.authService.user();
+    const strDeviceId = this.deviceService.getDeviceId();
+
+    const queryFilters: { strDeviceId?: string; email?: string; phoneNumber?: string; hospitalId?: string } = {
+      hospitalId,
+    };
+
+    if (currentUser?.email) {
+      queryFilters.email = currentUser.email;
+    } else if (currentUser?.phoneNumber) {
+      queryFilters.phoneNumber = currentUser.phoneNumber;
+    } else {
+      queryFilters.strDeviceId = strDeviceId;
+    }
+
+    this.appointmentService.getAppointments(queryFilters).subscribe({
+      next: (res) => {
+        const appointments: Appointment[] = res.data || [];
+        // Only consider active / upcoming appointments
+        const active = appointments.filter((a) =>
+          a.status === 'Pending' || a.status === 'Confirmed' || a.status === 'Scheduled' || a.status === 'Visiting'
+        );
+        const bookedIds = new Set<string>();
+        active.forEach((a) => {
+          const docId = typeof a.doctorId === 'object' && a.doctorId ? (a.doctorId as any)._id : a.doctorId;
+          if (docId) bookedIds.add(docId);
+        });
+        this.userBookedDoctorIds.set(bookedIds);
+      },
+      error: () => {
+        // Silently fail — user just won't see patient status
+        this.userBookedDoctorIds.set(new Set());
       },
     });
   }
