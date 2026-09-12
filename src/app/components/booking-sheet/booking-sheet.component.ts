@@ -73,6 +73,9 @@ export class BookingSheetComponent implements OnInit {
   readonly selectedDateStr = signal<string>('');
   readonly selectedTimeSlot = signal<string>('09:00 AM');
 
+  readonly isWorkingHoursEndedToday = signal<boolean>(false);
+  readonly tokenScheduleMessage = signal<string | null>(null);
+
   ngOnInit(): void {
     this.initQuickDates();
     this.initForm();
@@ -108,11 +111,16 @@ export class BookingSheetComponent implements OnInit {
       if (i === 0) dayName = 'Today';
       if (i === 1) dayName = 'Tomorrow';
 
-      dates.push({ label, dateStr, dayName });
+      dates.push({ label, dateStr, dayName, isPast: false });
     }
 
     this.quickDates.set(dates);
-    if (dates.length > 0) {
+
+    // If doctor's working hours ended today, automatically default selection to Tomorrow
+    if (this.doctor?.isWorkingHoursEnded && dates.length > 1) {
+      this.selectedDateStr.set(dates[1].dateStr);
+      this.isWorkingHoursEndedToday.set(true);
+    } else if (dates.length > 0) {
       this.selectedDateStr.set(dates[0].dateStr);
     }
   }
@@ -142,6 +150,7 @@ export class BookingSheetComponent implements OnInit {
     if (!this.doctor?._id) return;
 
     this.isLoadingTokens.set(true);
+    this.tokenScheduleMessage.set(null);
     const path = this.urlPath || this.hospital.urlPath;
 
     this.clinicService.getDoctorTokenSchedule(path, this.doctor._id, dateStr).subscribe({
@@ -150,8 +159,22 @@ export class BookingSheetComponent implements OnInit {
         const slots = res.tokens || [];
         this.tokenSlots.set(slots);
 
+        if (res.workingHoursEnded) {
+          this.isWorkingHoursEndedToday.set(true);
+          this.tokenScheduleMessage.set(res.message || 'Doctor working hours have ended for today. Please choose tomorrow or another date.');
+          this.selectedTokenNumber.set(null);
+
+          // If currently selected date is today and doctor hours ended, prompt or auto-switch to tomorrow
+          const dates = this.quickDates();
+          if (dates.length > 1 && this.selectedDateStr() === dates[0].dateStr) {
+            // Automatically switch to tomorrow to show available booking slots
+            this.selectDate(dates[1].dateStr);
+          }
+          return;
+        }
+
         // Auto-select first available token
-        const firstAvailable = slots.find((s: DoctorTokenSlot) => !s.isBooked);
+        const firstAvailable = slots.find((s: DoctorTokenSlot) => !s.isBooked && !s.isPast);
         if (firstAvailable) {
           this.selectToken(firstAvailable);
         } else {
@@ -161,6 +184,7 @@ export class BookingSheetComponent implements OnInit {
       error: () => {
         this.isLoadingTokens.set(false);
         this.tokenSlots.set([]);
+        this.selectedTokenNumber.set(null);
       },
     });
   }
@@ -174,7 +198,7 @@ export class BookingSheetComponent implements OnInit {
   }
 
   selectToken(slot: DoctorTokenSlot): void {
-    if (slot.isBooked) return;
+    if (slot.isBooked || slot.isPast) return;
     this.selectedTokenNumber.set(slot.tokenNumber);
     this.selectedTimeSlot.set(slot.allottedTime);
     this.bookingForm.patchValue({

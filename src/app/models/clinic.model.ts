@@ -46,6 +46,7 @@ export interface Doctor {
   tokensIssuedToday?: number;
   tokensRemainingToday?: number;
   isTokenFull?: boolean;
+  isWorkingHoursEnded?: boolean;
   consultationStatus?: 'online' | 'offline' | 'break';
   currentVisiting?: {
     patientName: string;
@@ -135,6 +136,7 @@ export interface DoctorTokenSlot {
   allottedTime: string;
   timeRange: string;
   isBooked: boolean;
+  isPast?: boolean;
   status: string;
 }
 
@@ -146,6 +148,9 @@ export interface DoctorTokenScheduleResponse {
     maxTokensPerDay: number;
   };
   date: string;
+  isToday?: boolean;
+  workingHoursEnded?: boolean;
+  message?: string;
   totalTokens: number;
   bookedTokensCount: number;
   availableTokensCount: number;

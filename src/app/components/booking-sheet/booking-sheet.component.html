@@ -156,15 +156,21 @@
               @for (qd of quickDates(); track qd.dateStr) {
                 <button 
                   type="button" 
+                  [disabled]="qd.dayName === 'Today' && isWorkingHoursEndedToday()"
                   (click)="selectDate(qd.dateStr)"
-                  class="min-w-[76px] sm:min-w-0 p-2.5 sm:p-2 rounded-xl border text-center transition-all cursor-pointer shrink-0 sm:shrink"
+                  class="min-w-[76px] sm:min-w-0 p-2.5 sm:p-2 rounded-xl border text-center transition-all cursor-pointer shrink-0 sm:shrink disabled:opacity-40 disabled:cursor-not-allowed"
                   [class.border-sky-600]="selectedDateStr() === qd.dateStr"
                   [class.bg-sky-600]="selectedDateStr() === qd.dateStr"
                   [class.text-white]="selectedDateStr() === qd.dateStr"
                   [class.border-slate-200]="selectedDateStr() !== qd.dateStr"
                   [class.bg-white]="selectedDateStr() !== qd.dateStr"
                   [class.text-slate-700]="selectedDateStr() !== qd.dateStr">
-                  <span class="block text-[10px] font-medium opacity-90">{{ qd.dayName }}</span>
+                  <span class="block text-[10px] font-medium opacity-90">
+                    {{ qd.dayName }}
+                    @if (qd.dayName === 'Today' && isWorkingHoursEndedToday()) {
+                      <span class="text-[9px] block text-rose-500 font-bold">(Ended)</span>
+                    }
+                  </span>
                   <span class="block text-xs font-bold mt-0.5">{{ qd.label }}</span>
                 </button>
               }
@@ -185,6 +191,18 @@
                 }
               </div>
 
+              @if (tokenScheduleMessage()) {
+                <div class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
+                  <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <span class="font-bold block">Consultation Closed for Today</span>
+                    <span>{{ tokenScheduleMessage() }}</span>
+                  </div>
+                </div>
+              }
+
               @if (isLoadingTokens()) {
                 <div class="py-6 text-center bg-slate-50 rounded-2xl border border-slate-200/80">
                   <div class="inline-block w-5 h-5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
@@ -195,24 +213,26 @@
                   @for (slot of tokenSlots(); track slot.tokenNumber) {
                     <button 
                       type="button" 
-                      [disabled]="slot.isBooked"
+                      [disabled]="slot.isBooked || slot.isPast"
                       (click)="selectToken(slot)"
                       class="p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer relative disabled:opacity-40 disabled:cursor-not-allowed group"
                       [class.border-sky-600]="selectedTokenNumber() === slot.tokenNumber"
                       [class.bg-sky-600]="selectedTokenNumber() === slot.tokenNumber"
                       [class.text-white]="selectedTokenNumber() === slot.tokenNumber"
-                      [class.border-slate-200]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
-                      [class.bg-white]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
-                      [class.text-slate-800]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
-                      [class.bg-slate-100]="slot.isBooked"
-                      [class.border-slate-200]="slot.isBooked">
+                      [class.border-slate-200]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked && !slot.isPast"
+                      [class.bg-white]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked && !slot.isPast"
+                      [class.text-slate-800]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked && !slot.isPast"
+                      [class.bg-slate-100]="slot.isBooked || slot.isPast"
+                      [class.border-slate-200]="slot.isBooked || slot.isPast">
                       
                       <div class="flex items-center justify-between">
-                        <span class="font-mono text-xs font-black tracking-tight" [class.text-white]="selectedTokenNumber() === slot.tokenNumber" [class.text-sky-700]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked">
+                        <span class="font-mono text-xs font-black tracking-tight" [class.text-white]="selectedTokenNumber() === slot.tokenNumber" [class.text-sky-700]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked && !slot.isPast">
                           Token #{{ slot.tokenNumber }}
                         </span>
                         @if (slot.isBooked) {
                           <span class="text-[9px] font-bold text-slate-400 uppercase">Booked</span>
+                        } @else if (slot.isPast) {
+                          <span class="text-[9px] font-bold text-slate-400 uppercase">Passed</span>
                         }
                       </div>
 
@@ -227,7 +247,11 @@
                 </div>
               } @else {
                 <div class="p-4 text-center bg-slate-50 rounded-xl text-xs text-slate-500">
-                  No tokens available for this date.
+                  @if (tokenScheduleMessage()) {
+                    {{ tokenScheduleMessage() }}
+                  } @else {
+                    No tokens available for this date.
+                  }
                 </div>
               }
             } @else {
