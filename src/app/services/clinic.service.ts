@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, Department, Doctor, HospitalInfo } from '../models/clinic.model';
+import { ApiResponse, Department, Doctor, DoctorLiveStatus, HospitalInfo, DoctorTokenScheduleResponse } from '../models/clinic.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -58,4 +58,51 @@ export class ClinicService {
       { params }
     );
   }
+
+  /**
+   * 4. Fetch real-time Doctor Live Consultation & Queue Status
+   * GET /api/clinic/:urlPath/doctors/:doctorId/live-status
+   */
+  getDoctorLiveStatus(
+    urlPath: string,
+    doctorId: string,
+    identifiers?: { email?: string; phoneNumber?: string; strDeviceId?: string }
+  ): Observable<DoctorLiveStatus> {
+    let params = new HttpParams();
+    if (identifiers?.email) {
+      params = params.set('email', identifiers.email);
+    }
+    if (identifiers?.phoneNumber) {
+      params = params.set('phoneNumber', identifiers.phoneNumber);
+    }
+    if (identifiers?.strDeviceId) {
+      params = params.set('strDeviceId', identifiers.strDeviceId);
+    }
+
+    return this.http.get<DoctorLiveStatus>(
+      `${this.apiUrl}/api/clinic/${encodeURIComponent(urlPath)}/doctors/${encodeURIComponent(doctorId)}/live-status`,
+      { params }
+    );
+  }
+
+  /**
+   * 5. Fetch doctor's token schedule with allotted times for a specific date
+   * GET /api/clinic/:urlPath/doctors/:doctorId/tokens?date=YYYY-MM-DD
+   */
+  getDoctorTokenSchedule(
+    urlPath: string,
+    doctorId: string,
+    date?: string
+  ): Observable<DoctorTokenScheduleResponse> {
+    let params = new HttpParams();
+    if (date) {
+      params = params.set('date', date);
+    }
+
+    return this.http.get<DoctorTokenScheduleResponse>(
+      `${this.apiUrl}/api/clinic/${encodeURIComponent(urlPath)}/doctors/${encodeURIComponent(doctorId)}/tokens`,
+      { params }
+    );
+  }
 }
+

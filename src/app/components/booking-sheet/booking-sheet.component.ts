@@ -5,7 +5,9 @@ import { Router } from '@angular/router';
 import { AppointmentService } from '../../services/appointment.service';
 import { AuthService } from '../../services/auth.service';
 import { DeviceService } from '../../services/device.service';
-import { HospitalInfo, Department, Doctor, Appointment } from '../../models/clinic.model';
+import { ClinicService } from '../../services/clinic.service';
+import { HospitalInfo, Department, Doctor, Appointment, DoctorTokenSlot } from '../../models/clinic.model';
+import { getMediaUrl } from '../../utils/media.util';
 
 @Component({
   selector: 'app-booking-sheet',
@@ -18,8 +20,10 @@ export class BookingSheetComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly clinicService = inject(ClinicService);
   readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
+  readonly getImageUrl = getMediaUrl;
 
   @Input({ required: true }) hospital!: HospitalInfo;
   @Input() doctor: Doctor | null = null;
@@ -44,8 +48,13 @@ export class BookingSheetComponent implements OnInit {
   readonly otpMessage = signal<string | null>(null);
   readonly otpError = signal<string | null>(null);
 
-  // Time slots & Dates
-  readonly availableTimeSlots: string[] = [
+  // Doctor Token Schedule (Tokens allotted with times)
+  readonly tokenSlots = signal<DoctorTokenSlot[]>([]);
+  readonly isLoadingTokens = signal<boolean>(false);
+  readonly selectedTokenNumber = signal<number | null>(null);
+
+  // Fallback Time slots for General Consultation (when no specific doctor is selected)
+  readonly generalTimeSlots: string[] = [
     '09:00 AM',
     '09:30 AM',
     '10:00 AM',
@@ -62,7 +71,7 @@ export class BookingSheetComponent implements OnInit {
 
   readonly quickDates = signal<{ label: string; dateStr: string; dayName: string }[]>([]);
   readonly selectedDateStr = signal<string>('');
-  readonly selectedTimeSlot = signal<string>('10:00 AM');
+  readonly selectedTimeSlot = signal<string>('09:00 AM');
 
   ngOnInit(): void {
     this.initQuickDates();
@@ -72,6 +81,11 @@ export class BookingSheetComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.authChoice.set('WANTS_AUTH');
       this.otpStep.set('VERIFIED');
+    }
+
+    // Load initial tokens if doctor is chosen
+    if (this.doctor) {
+      this.loadDoctorTokens(this.selectedDateStr());
     }
   }
 
@@ -119,16 +133,57 @@ export class BookingSheetComponent implements OnInit {
       ],
       appointmentDate: [defaultDate, Validators.required],
       appointmentTime: [this.selectedTimeSlot(), Validators.required],
+      tokenNumber: [null],
       reason: [''],
+    });
+  }
+
+  loadDoctorTokens(dateStr: string): void {
+    if (!this.doctor?._id) return;
+
+    this.isLoadingTokens.set(true);
+    const path = this.urlPath || this.hospital.urlPath;
+
+    this.clinicService.getDoctorTokenSchedule(path, this.doctor._id, dateStr).subscribe({
+      next: (res) => {
+        this.isLoadingTokens.set(false);
+        const slots = res.tokens || [];
+        this.tokenSlots.set(slots);
+
+        // Auto-select first available token
+        const firstAvailable = slots.find((s: DoctorTokenSlot) => !s.isBooked);
+        if (firstAvailable) {
+          this.selectToken(firstAvailable);
+        } else {
+          this.selectedTokenNumber.set(null);
+        }
+      },
+      error: () => {
+        this.isLoadingTokens.set(false);
+        this.tokenSlots.set([]);
+      },
     });
   }
 
   selectDate(dateStr: string): void {
     this.selectedDateStr.set(dateStr);
     this.bookingForm.patchValue({ appointmentDate: dateStr });
+    if (this.doctor) {
+      this.loadDoctorTokens(dateStr);
+    }
   }
 
-  selectSlot(slot: string): void {
+  selectToken(slot: DoctorTokenSlot): void {
+    if (slot.isBooked) return;
+    this.selectedTokenNumber.set(slot.tokenNumber);
+    this.selectedTimeSlot.set(slot.allottedTime);
+    this.bookingForm.patchValue({
+      tokenNumber: slot.tokenNumber,
+      appointmentTime: slot.allottedTime,
+    });
+  }
+
+  selectGeneralSlot(slot: string): void {
     this.selectedTimeSlot.set(slot);
     this.bookingForm.patchValue({ appointmentTime: slot });
   }
@@ -224,6 +279,7 @@ export class BookingSheetComponent implements OnInit {
       department: dept ? dept.name : doc?.department || 'General Medicine',
       departmentId: dept ? dept._id : typeof doc?.departmentId === 'string' ? doc.departmentId : doc?.departmentId?._id,
       doctorId: doc ? doc._id : undefined,
+      tokenNumber: this.selectedTokenNumber() || undefined,
       strDeviceId: deviceId,
       appointmentDate: formValues.appointmentDate || this.selectedDateStr(),
       appointmentTime: formValues.appointmentTime || this.selectedTimeSlot(),

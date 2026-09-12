@@ -5,6 +5,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { LoginPayload } from '../../models/customer.model';
 import { AuthService } from '../../services/auth.service';
 import { inject, OnInit } from '@angular/core';
+import { getMediaUrl } from '../../utils/media.util';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,7 @@ import { inject, OnInit } from '@angular/core';
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
+  readonly getImageUrl = getMediaUrl;
   showPassword = signal(false);
   isSubmitting = signal(false);
   clinicId = signal('default');

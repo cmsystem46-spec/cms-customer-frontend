@@ -5,27 +5,33 @@
   <div class="fixed inset-0 -z-10" (click)="close.emit()"></div>
 
   <!-- Sheet Container -->
-  <div class="w-full sm:max-w-xl max-h-[90vh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col animate-slide-up">
+  <div class="w-full sm:max-w-xl max-h-[92vh] bg-white rounded-t-2xl sm:rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col animate-slide-up">
     
+    <!-- Mobile Pull Indicator Bar -->
+    <div class="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 border-b border-slate-100">
+      <div class="w-10 h-1 rounded-full bg-slate-300"></div>
+    </div>
+
     <!-- Sheet Top Header -->
-    <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
       <div class="flex items-center gap-3 min-w-0">
         @if (doctor?.imageUrl) {
           <img 
-            [src]="'http://localhost:3000/uploads/' + doctor?.imageUrl" 
+            [src]="getImageUrl(doctor?.imageUrl)" 
             alt="Doctor" 
-            class="w-11 h-11 rounded-2xl object-cover border border-slate-200 shadow-2xs shrink-0">
+            class="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
+            (error)="doctor!.imageUrl = null">
         } @else {
-          <div class="w-11 h-11 rounded-2xl bg-teal-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
+          <div class="w-10 h-10 rounded-lg bg-sky-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
             {{ doctor?.name ? (doctor!.name | slice:0:2 | uppercase) : 'DR' }}
           </div>
         }
 
         <div class="min-w-0">
-          <h3 class="text-base font-bold text-slate-900 truncate">
+          <h3 class="text-sm font-bold text-slate-900 truncate">
             {{ doctor?.name || 'General Consultation' }}
           </h3>
-          <p class="text-xs text-teal-700 font-medium truncate">
+          <p class="text-xs text-slate-500 font-medium truncate">
             {{ doctor?.specialization || doctor?.department || department?.name || 'General Medicine' }}
             <span class="text-slate-400 font-normal"> &bull; {{ hospital.name }}</span>
           </p>
@@ -36,10 +42,8 @@
       <button 
         type="button" 
         (click)="close.emit()"
-        class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer shrink-0">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer shrink-0 text-sm">
+        ✕
       </button>
     </div>
 
@@ -51,25 +55,35 @@
       <!-- ============================================== -->
       @if (confirmedAppointment()) {
         <div class="text-center py-4 space-y-4">
-          <div class="w-16 h-16 mx-auto rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
             </svg>
           </div>
 
           <div>
-            <h3 class="text-xl font-extrabold text-slate-900">Appointment Booked!</h3>
-            <p class="text-xs text-slate-500 mt-1">
+            <h3 class="text-lg font-bold text-slate-900">Appointment Booked</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
               Your visit has been registered with {{ confirmedAppointment()?.hospitalName }}.
             </p>
           </div>
 
           <!-- Summary Card -->
-          <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left space-y-2.5 text-xs">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
-              <span class="text-slate-400">Booking Reference</span>
-              <span class="font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left space-y-2.5 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+              <span class="text-slate-500">Booking Reference</span>
+              <span class="font-mono font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded">
                 #{{ confirmedAppointment()!._id | slice: -8 | uppercase }}
+              </span>
+            </div>
+
+            <!-- Token Number Badge -->
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-sky-50 border border-sky-200">
+              <div class="flex items-center gap-1.5 text-sky-900 font-semibold">
+                <span>Assigned Patient Token</span>
+              </div>
+              <span class="font-mono font-bold text-sm text-sky-700 bg-white px-2.5 py-0.5 rounded border border-sky-300">
+                #{{ confirmedAppointment()?.tokenNumber || 'Queue 1' }}
               </span>
             </div>
 
@@ -85,14 +99,14 @@
 
             <div class="flex items-center justify-between">
               <span class="text-slate-500">Scheduled Visit</span>
-              <strong class="text-teal-700 font-bold">
+              <strong class="text-sky-700 font-bold">
                 {{ confirmedAppointment()?.appointmentDate | date:'mediumDate' }} at {{ confirmedAppointment()?.appointmentTime }}
               </strong>
             </div>
 
             <div class="flex items-center justify-between">
               <span class="text-slate-500">Status</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                 {{ confirmedAppointment()?.status }}
               </span>
             </div>
@@ -102,13 +116,13 @@
             <button 
               type="button" 
               (click)="goToAppointments()"
-              class="w-full py-3 px-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md shadow-teal-600/20 transition-all cursor-pointer">
+              class="btn-primary text-xs w-full">
               View in My Appointments
             </button>
             <button 
               type="button" 
               (click)="close.emit()"
-              class="w-full py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer">
+              class="btn-secondary text-xs w-full">
               Close
             </button>
           </div>
@@ -121,17 +135,31 @@
       @else {
         <form [formGroup]="bookingForm" (ngSubmit)="confirmBooking()" class="space-y-5">
 
+          <!-- Doctor Availability & Token Quota Notice -->
+          @if (doctor) {
+            <div class="p-3 bg-sky-50 rounded-xl border border-sky-200/80 flex items-center justify-between text-xs text-sky-900">
+              <div>
+                <span class="font-semibold block">Available Consultation Hours:</span>
+                <span class="text-sky-700">{{ doctor.availableTime || '09:00 AM - 01:00 PM' }}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-semibold block">Daily Token Quota:</span>
+                <span class="font-mono font-bold text-sky-800">{{ doctor.tokensIssuedToday || 0 }} / {{ doctor.maxTokensPerDay || 25 }} issued</span>
+              </div>
+            </div>
+          }
+
           <!-- 1. Select Date -->
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-2">1. Select Date</label>
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div class="flex sm:grid sm:grid-cols-6 gap-2 overflow-x-auto no-scrollbar pb-1">
               @for (qd of quickDates(); track qd.dateStr) {
                 <button 
                   type="button" 
                   (click)="selectDate(qd.dateStr)"
-                  class="p-2 rounded-2xl border text-center transition-all cursor-pointer"
-                  [class.border-teal-600]="selectedDateStr() === qd.dateStr"
-                  [class.bg-teal-600]="selectedDateStr() === qd.dateStr"
+                  class="min-w-[76px] sm:min-w-0 p-2.5 sm:p-2 rounded-xl border text-center transition-all cursor-pointer shrink-0 sm:shrink"
+                  [class.border-sky-600]="selectedDateStr() === qd.dateStr"
+                  [class.bg-sky-600]="selectedDateStr() === qd.dateStr"
                   [class.text-white]="selectedDateStr() === qd.dateStr"
                   [class.border-slate-200]="selectedDateStr() !== qd.dateStr"
                   [class.bg-white]="selectedDateStr() !== qd.dateStr"
@@ -143,25 +171,85 @@
             </div>
           </div>
 
-          <!-- 2. Select Time Slot -->
+          <!-- 2. Select Consultation Token & Allotted Time -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-2">2. Select Time Slot</label>
-            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              @for (slot of availableTimeSlots; track slot) {
-                <button 
-                  type="button" 
-                  (click)="selectSlot(slot)"
-                  class="py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer"
-                  [class.border-teal-600]="selectedTimeSlot() === slot"
-                  [class.bg-teal-50]="selectedTimeSlot() === slot"
-                  [class.text-teal-900]="selectedTimeSlot() === slot"
-                  [class.font-bold]="selectedTimeSlot() === slot"
-                  [class.border-slate-200]="selectedTimeSlot() !== slot"
-                  [class.text-slate-600]="selectedTimeSlot() !== slot">
-                  {{ slot }}
-                </button>
+            @if (doctor) {
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-xs font-bold text-slate-700">
+                  2. Select Consultation Token & Allotted Time
+                </label>
+                @if (selectedTokenNumber()) {
+                  <span class="text-[11px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md">
+                    Token #{{ selectedTokenNumber() }} &bull; {{ selectedTimeSlot() }}
+                  </span>
+                }
+              </div>
+
+              @if (isLoadingTokens()) {
+                <div class="py-6 text-center bg-slate-50 rounded-2xl border border-slate-200/80">
+                  <div class="inline-block w-5 h-5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p class="text-[11px] text-slate-500 mt-1 font-medium">Generating token time schedule...</p>
+                </div>
+              } @else if (tokenSlots().length > 0) {
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
+                  @for (slot of tokenSlots(); track slot.tokenNumber) {
+                    <button 
+                      type="button" 
+                      [disabled]="slot.isBooked"
+                      (click)="selectToken(slot)"
+                      class="p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer relative disabled:opacity-40 disabled:cursor-not-allowed group"
+                      [class.border-sky-600]="selectedTokenNumber() === slot.tokenNumber"
+                      [class.bg-sky-600]="selectedTokenNumber() === slot.tokenNumber"
+                      [class.text-white]="selectedTokenNumber() === slot.tokenNumber"
+                      [class.border-slate-200]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
+                      [class.bg-white]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
+                      [class.text-slate-800]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked"
+                      [class.bg-slate-100]="slot.isBooked"
+                      [class.border-slate-200]="slot.isBooked">
+                      
+                      <div class="flex items-center justify-between">
+                        <span class="font-mono text-xs font-black tracking-tight" [class.text-white]="selectedTokenNumber() === slot.tokenNumber" [class.text-sky-700]="selectedTokenNumber() !== slot.tokenNumber && !slot.isBooked">
+                          Token #{{ slot.tokenNumber }}
+                        </span>
+                        @if (slot.isBooked) {
+                          <span class="text-[9px] font-bold text-slate-400 uppercase">Booked</span>
+                        }
+                      </div>
+
+                      <div class="mt-1 flex items-center gap-1 text-[11px] font-semibold" [class.text-sky-100]="selectedTokenNumber() === slot.tokenNumber" [class.text-slate-600]="selectedTokenNumber() !== slot.tokenNumber">
+                        <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ slot.allottedTime }}</span>
+                      </div>
+                    </button>
+                  }
+                </div>
+              } @else {
+                <div class="p-4 text-center bg-slate-50 rounded-xl text-xs text-slate-500">
+                  No tokens available for this date.
+                </div>
               }
-            </div>
+            } @else {
+              <!-- General Consultation (when no specific doctor is selected) -->
+              <label class="block text-xs font-bold text-slate-700 mb-2">2. Select Preferred Time Slot</label>
+              <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                @for (slot of generalTimeSlots; track slot) {
+                  <button 
+                    type="button" 
+                    (click)="selectGeneralSlot(slot)"
+                    class="py-2.5 sm:py-2 px-2 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer"
+                    [class.border-sky-600]="selectedTimeSlot() === slot"
+                    [class.bg-sky-50]="selectedTimeSlot() === slot"
+                    [class.text-sky-900]="selectedTimeSlot() === slot"
+                    [class.font-bold]="selectedTimeSlot() === slot"
+                    [class.border-slate-200]="selectedTimeSlot() !== slot"
+                    [class.text-slate-600]="selectedTimeSlot() !== slot">
+                    {{ slot }}
+                  </button>
+                }
+              </div>
+            }
           </div>
 
           <!-- 3. Patient Details -->
@@ -230,17 +318,17 @@
             
             <!-- Not Verified Yet: Ask Upfront -->
             @else {
-              <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-50/80 via-emerald-50/60 to-slate-50 border border-teal-200/70 space-y-3">
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div class="flex items-start gap-2.5">
-                  <div class="w-7 h-7 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 text-xs">
+                  <div class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 text-xs">
                     🔒
                   </div>
                   <div>
                     <h4 class="text-xs font-bold text-slate-900">
-                      Would you like to Sign Up or Sign In?
+                      Sign in to sync your appointment history?
                     </h4>
-                    <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-                      Signing in with Email OTP allows you to view your complete appointment history anytime on any device. Or simply continue as guest!
+                    <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      Verifying with an Email OTP lets you access your token tickets anytime. Or you can continue as a guest.
                     </p>
                   </div>
                 </div>
@@ -251,15 +339,15 @@
                     <button 
                       type="button" 
                       (click)="chooseSignIn()"
-                      class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                      <span>Yes, Verify & Sign In with Email OTP</span>
+                      class="btn-primary text-xs flex-1">
+                      <span>Verify & Sign In</span>
                     </button>
                     
                     <button 
                       type="button" 
                       (click)="chooseGuest()"
-                      class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 transition-all text-center cursor-pointer">
-                      <span>No, Continue as Guest</span>
+                      class="btn-secondary text-xs flex-1">
+                      <span>Continue as Guest</span>
                     </button>
                   </div>
                 }
@@ -267,23 +355,36 @@
                 <!-- Step 4B: Input Email if needed -->
                 @if (otpStep() === 'INPUT_EMAIL') {
                   <div class="space-y-2 pt-1">
-                    <p class="text-[11px] text-slate-700 font-medium">Please enter your email above and click Send OTP:</p>
-                    <button 
-                      type="button" 
-                      (click)="requestOtp()"
-                      [disabled]="isSendingOtp()"
-                      class="px-3.5 py-2 rounded-xl bg-teal-600 text-white text-xs font-semibold shadow-xs cursor-pointer">
-                      {{ isSendingOtp() ? 'Sending Code...' : 'Send Verification Code' }}
-                    </button>
+                    <label class="block text-[11px] font-semibold text-slate-600">Enter Email for OTP Code</label>
+                    <div class="flex gap-2">
+                      <input 
+                        type="email" 
+                        formControlName="email"
+                        placeholder="patient@example.com"
+                        class="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-sky-600">
+                      
+                      <button 
+                        type="button" 
+                        (click)="requestOtp()"
+                        [disabled]="isSendingOtp()"
+                        class="btn-primary text-xs shrink-0 disabled:opacity-50">
+                        {{ isSendingOtp() ? 'Sending...' : 'Send OTP' }}
+                      </button>
+                    </div>
                   </div>
                 }
 
-                <!-- Step 4C: Enter 6-digit OTP -->
+                <!-- Step 4C: Input OTP code -->
                 @if (otpStep() === 'INPUT_OTP') {
-                  <div class="space-y-2.5 pt-1">
-                    <div class="flex items-center justify-between text-[11px]">
-                      <span class="text-slate-700 font-semibold">Enter 6-Digit Code sent to your email:</span>
-                      <button type="button" (click)="requestOtp()" class="text-teal-600 hover:underline">Resend</button>
+                  <div class="space-y-2 pt-1">
+                    <div class="flex items-center justify-between">
+                      <label class="block text-[11px] font-semibold text-slate-600">Enter 6-Digit OTP</label>
+                      <button 
+                        type="button" 
+                        (click)="otpStep.set('INPUT_EMAIL')"
+                        class="text-[11px] text-sky-600 hover:underline">
+                        Change email
+                      </button>
                     </div>
 
                     <div class="flex gap-2">
@@ -293,13 +394,13 @@
                         [ngModelOptions]="{standalone: true}"
                         placeholder="e.g. 403557"
                         maxlength="6"
-                        class="w-36 px-3 py-2 text-center font-mono tracking-widest bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600">
+                        class="w-36 px-3 py-2 text-center font-mono tracking-widest bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-sky-600">
                       
                       <button 
                         type="button" 
                         (click)="verifyOtpCode()"
                         [disabled]="isVerifyingOtp()"
-                        class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-50">
+                        class="btn-primary text-xs shrink-0 disabled:opacity-50">
                         {{ isVerifyingOtp() ? 'Verifying...' : 'Verify OTP' }}
                       </button>
                     </div>
@@ -309,7 +410,7 @@
                 <!-- Guest Notice Confirmation -->
                 @if (authChoice() === 'GUEST') {
                   <p class="text-[11px] text-slate-500 italic">
-                    ✓ Continuing as guest. Your appointment will be saved securely to this device.
+                    ✓ Continuing as guest. Your appointment will be saved to this device.
                   </p>
                 }
 
@@ -327,7 +428,7 @@
 
           <!-- Error Alert -->
           @if (errorMessage()) {
-            <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+            <div class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
               <span class="shrink-0 font-bold">⚠️</span>
               <span>{{ errorMessage() }}</span>
             </div>
@@ -337,7 +438,7 @@
           <button 
             type="submit" 
             [disabled]="isSubmitting()"
-            class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-sm shadow-lg shadow-teal-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+            class="btn-primary w-full text-xs py-3 justify-center">
             @if (isSubmitting()) {
               <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

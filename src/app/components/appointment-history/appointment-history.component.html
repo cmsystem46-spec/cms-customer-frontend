@@ -1,30 +1,30 @@
 <div class="space-y-6">
 
   <!-- Header & Sync Status Banner -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-soft">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <h2 class="text-xl font-bold text-slate-900 tracking-tight">Your Appointments</h2>
-        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Your Appointments</h2>
+        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
           {{ appointments().length }} Total
         </span>
       </div>
       <p class="text-xs text-slate-500">
         @if (authService.isAuthenticated()) {
-          <span>Showing all appointments for <strong class="text-slate-800">{{ authService.user()?.email }}</strong></span>
+          <span>Account: <strong class="text-slate-800">{{ authService.user()?.email }}</strong></span>
         } @else {
-          <span>Viewing appointments booked on this browser (Guest Device: <code class="text-[11px] text-teal-700 bg-teal-50 px-1 py-0.5 rounded">{{ deviceService.getDeviceId() | slice:0:12 }}...</code>)</span>
+          <span>Guest Device ID: <code class="text-[11px] text-slate-700 bg-slate-100 px-1 py-0.5 rounded">{{ deviceService.getDeviceId() | slice:0:12 }}...</code></span>
         }
       </p>
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center gap-2.5">
+    <div class="flex items-center gap-2">
       <button 
         type="button" 
         (click)="loadAppointments()"
         [disabled]="isLoading()"
-        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+        class="btn-secondary text-xs">
         <svg class="w-3.5 h-3.5 text-slate-600" [class.animate-spin]="isLoading()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
@@ -34,91 +34,73 @@
       <button 
         type="button" 
         (click)="bookNew.emit()" 
-        class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span>Book New</span>
+        class="btn-primary text-xs">
+        <span>Book Token</span>
       </button>
     </div>
   </div>
 
   <!-- Guest Sign-in Callout if not logged in -->
   @if (!authService.isAuthenticated()) {
-    <div class="bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-transparent p-4 sm:p-5 rounded-3xl border border-teal-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-start gap-3.5">
-        <div class="w-9 h-9 rounded-2xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <h4 class="text-xs font-bold text-slate-900">Want to see appointments booked on other devices?</h4>
-          <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-            Log in with your Email OTP to unlock and sync all your appointments across phone, tablet, and PC.
-          </p>
-        </div>
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div>
+        <h4 class="font-semibold text-slate-900">Sync appointments across devices</h4>
+        <p class="text-slate-500 mt-0.5">
+          Sign in with Email OTP to access your appointments from any browser or phone.
+        </p>
       </div>
       <button 
         type="button" 
         (click)="requestLogin.emit()" 
-        class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-sm transition-colors shrink-0 cursor-pointer self-start sm:self-auto">
-        Sign In / Sync History
+        class="btn-secondary text-xs shrink-0 self-start sm:self-auto">
+        Sign In / OTP
       </button>
     </div>
   }
 
-  <!-- Status Filter Pills -->
-  <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+  <!-- Status Filter Tabs -->
+  <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 border-b border-slate-200">
     <button 
       type="button" 
       (click)="activeFilter.set('ALL')"
-      class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-      [class.bg-slate-900]="activeFilter() === 'ALL'"
-      [class.text-white]="activeFilter() === 'ALL'"
-      [class.bg-white]="activeFilter() !== 'ALL'"
-      [class.text-slate-600]="activeFilter() !== 'ALL'"
-      [class.border]="activeFilter() !== 'ALL'"
-      [class.border-slate-200]="activeFilter() !== 'ALL'">
-      All Appointments ({{ appointments().length }})
+      class="px-3 py-1.5 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer"
+      [class.border-sky-600]="activeFilter() === 'ALL'"
+      [class.text-sky-600]="activeFilter() === 'ALL'"
+      [class.border-transparent]="activeFilter() !== 'ALL'"
+      [class.text-slate-500]="activeFilter() !== 'ALL'">
+      All ({{ appointments().length }})
     </button>
 
     <button 
       type="button" 
       (click)="activeFilter.set('UPCOMING')"
-      class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-      [class.bg-slate-900]="activeFilter() === 'UPCOMING'"
-      [class.text-white]="activeFilter() === 'UPCOMING'"
-      [class.bg-white]="activeFilter() !== 'UPCOMING'"
-      [class.text-slate-600]="activeFilter() !== 'UPCOMING'"
-      [class.border]="activeFilter() !== 'UPCOMING'"
-      [class.border-slate-200]="activeFilter() !== 'UPCOMING'">
-      Upcoming / Confirmed
+      class="px-3 py-1.5 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer"
+      [class.border-sky-600]="activeFilter() === 'UPCOMING'"
+      [class.text-sky-600]="activeFilter() === 'UPCOMING'"
+      [class.border-transparent]="activeFilter() !== 'UPCOMING'"
+      [class.text-slate-500]="activeFilter() !== 'UPCOMING'">
+      Upcoming
     </button>
 
     <button 
       type="button" 
       (click)="activeFilter.set('VISITED')"
-      class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-      [class.bg-slate-900]="activeFilter() === 'VISITED'"
-      [class.text-white]="activeFilter() === 'VISITED'"
-      [class.bg-white]="activeFilter() !== 'VISITED'"
-      [class.text-slate-600]="activeFilter() !== 'VISITED'"
-      [class.border]="activeFilter() !== 'VISITED'"
-      [class.border-slate-200]="activeFilter() !== 'VISITED'">
+      class="px-3 py-1.5 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer"
+      [class.border-sky-600]="activeFilter() === 'VISITED'"
+      [class.text-sky-600]="activeFilter() === 'VISITED'"
+      [class.border-transparent]="activeFilter() !== 'VISITED'"
+      [class.text-slate-500]="activeFilter() !== 'VISITED'">
       Visited
     </button>
 
     <button 
       type="button" 
       (click)="activeFilter.set('CANCELLED')"
-      class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-      [class.bg-slate-900]="activeFilter() === 'CANCELLED'"
-      [class.text-white]="activeFilter() === 'CANCELLED'"
-      [class.bg-white]="activeFilter() !== 'CANCELLED'"
-      [class.text-slate-600]="activeFilter() !== 'CANCELLED'"
-      [class.border]="activeFilter() !== 'CANCELLED'"
-      [class.border-slate-200]="activeFilter() !== 'CANCELLED'">
+      class="px-3 py-1.5 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer"
+      [class.border-sky-600]="activeFilter() === 'CANCELLED'"
+      [class.text-sky-600]="activeFilter() === 'CANCELLED'"
+      [class.border-transparent]="activeFilter() !== 'CANCELLED'"
+      [class.text-slate-500]="activeFilter() !== 'CANCELLED'">
       Cancelled
     </button>
   </div>
@@ -172,15 +154,59 @@
           <!-- Top Tag & Reference -->
           <div>
             <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border" [class]="getStatusBadgeClass(apt.status)">
-                <span class="w-1.5 h-1.5 rounded-full mr-1.5" [class]="apt.status === 'Confirmed' ? 'bg-emerald-500' : apt.status === 'Cancelled' ? 'bg-rose-500' : 'bg-amber-500'"></span>
-                {{ apt.status }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border" [class]="getStatusBadgeClass(apt.status)">
+                  <span class="w-1.5 h-1.5 rounded-full mr-1.5" [class]="apt.status === 'Confirmed' ? 'bg-emerald-500' : apt.status === 'Cancelled' ? 'bg-rose-500' : 'bg-amber-500'"></span>
+                  {{ apt.status }}
+                </span>
+
+                @if (apt.tokenNumber) {
+                  <span class="inline-flex items-center px-3 py-1 rounded-lg font-mono text-xs font-black bg-sky-600 text-white shadow-xs">
+                    Your Token #{{ apt.tokenNumber }}
+                  </span>
+                }
+              </div>
 
               <span class="text-[11px] font-mono text-slate-400">
                 #{{ apt._id | slice: -6 | uppercase }}
               </span>
             </div>
+
+            <!-- Live Room Status Callout (Current Serving Token) -->
+            @if (apt.status !== 'Visited' && apt.status !== 'Cancelled' && apt.status !== 'Completed') {
+              <div class="mb-3.5 p-2.5 rounded-lg border bg-slate-50 border-slate-200">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full" [class]="apt.status === 'Visiting' ? 'bg-emerald-600' : 'bg-slate-400'"></span>
+                    <div>
+                      @if (apt.status === 'Visiting') {
+                        <span class="text-xs font-semibold text-emerald-800">Your Turn: Currently in Consultation</span>
+                      } @else if (apt.currentVisitingToken) {
+                        <span class="text-xs text-slate-700">Doctor Room: Consultation in progress</span>
+                      } @else {
+                        <span class="text-xs text-slate-500">Doctor Room: Waiting for next patient</span>
+                      }
+                    </div>
+                  </div>
+
+                  @if (apt.currentVisitingToken) {
+                    <span class="px-2.5 py-1 rounded-md font-mono text-xs font-black bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
+                      Now Serving #{{ apt.currentVisitingToken }}
+                    </span>
+                  }
+                </div>
+
+                @if (apt.status !== 'Visiting' && apt.queueAheadCount !== undefined && apt.queueAheadCount > 0) {
+                  <p class="text-[11px] text-amber-800/90 mt-1 pl-4.5 font-medium">
+                    {{ apt.queueAheadCount }} patient{{ apt.queueAheadCount > 1 ? 's' : '' }} ahead of you in queue
+                  </p>
+                } @else if (apt.status !== 'Visiting' && apt.tokenNumber && apt.currentVisitingToken && apt.tokenNumber === apt.currentVisitingToken + 1) {
+                  <p class="text-[11px] text-emerald-700 font-bold mt-1 pl-4.5">
+                    ★ You are next in queue! Please be ready near the room.
+                  </p>
+                }
+              </div>
+            }
 
             <!-- Doctor & Department -->
             <div class="flex items-start gap-3.5 mb-4">

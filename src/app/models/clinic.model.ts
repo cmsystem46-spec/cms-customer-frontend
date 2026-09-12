@@ -41,6 +41,17 @@ export interface Doctor {
   specialization?: string;
   hospitalId: string;
   imageUrl?: string | null;
+  maxTokensPerDay?: number;
+  availableTime?: string;
+  tokensIssuedToday?: number;
+  tokensRemainingToday?: number;
+  isTokenFull?: boolean;
+  consultationStatus?: 'online' | 'offline' | 'break';
+  currentVisiting?: {
+    patientName: string;
+    tokenNumber?: number;
+    appointmentTime?: string;
+  } | null;
 }
 
 export type AppointmentStatus =
@@ -57,19 +68,88 @@ export interface Appointment {
   patientName: string;
   phoneNumber: string;
   email: string;
-  strDeviceId?: string;
-  hospitalId?: string;
-  hospitalName: string;
-  department?: string;
+  hospitalId: string;
+  hospitalName?: string;
+  department: string;
   departmentId?: string;
-  doctorId?: string;
+  doctorId?: any;
   doctorName?: string;
+  tokenNumber?: number;
   appointmentDate: string;
   appointmentTime: string;
   status: AppointmentStatus;
   reason?: string;
+  strDeviceId?: string;
+  queueAheadCount?: number;
+  currentVisitingToken?: number;
+  currentVisitingPatient?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface DoctorLiveStatus {
+  doctor: {
+    _id: string;
+    name: string;
+    department: string;
+    specialization?: string;
+    imageUrl?: string | null;
+    availableTime: string;
+    consultationStatus?: 'online' | 'offline' | 'break';
+    maxTokensPerDay: number;
+    tokensIssuedToday: number;
+    tokensRemainingToday: number;
+    isTokenFull: boolean;
+  };
+  hospital: {
+    _id: string;
+    name: string;
+    urlPath: string;
+  };
+  currentPatient: {
+    patientName: string;
+    tokenNumber?: number;
+    appointmentTime?: string;
+    status?: AppointmentStatus;
+  } | null;
+  totalInQueue: number;
+  completedToday: number;
+  upcomingPatients: {
+    position: number;
+    tokenNumber: number;
+    patientName: string;
+    appointmentTime?: string;
+    status?: AppointmentStatus;
+  }[];
+  yourStatus?: {
+    position: number | null;
+    tokenNumber?: number;
+    totalInQueue: number;
+    appointment?: any;
+    message: string;
+  };
+}
+
+export interface DoctorTokenSlot {
+  tokenNumber: number;
+  allottedTime: string;
+  timeRange: string;
+  isBooked: boolean;
+  status: string;
+}
+
+export interface DoctorTokenScheduleResponse {
+  doctor: {
+    _id: string;
+    name: string;
+    availableTime: string;
+    maxTokensPerDay: number;
+  };
+  date: string;
+  totalTokens: number;
+  bookedTokensCount: number;
+  availableTokensCount: number;
+  tokens: DoctorTokenSlot[];
 }
 
 export interface CreateAppointmentPayload {
@@ -81,6 +161,7 @@ export interface CreateAppointmentPayload {
   department?: string;
   departmentId?: string;
   doctorId?: string;
+  tokenNumber?: number;
   strDeviceId?: string;
   appointmentDate: string;
   appointmentTime: string;

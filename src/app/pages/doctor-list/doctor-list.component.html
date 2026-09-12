@@ -1,194 +1,417 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 pb-20 selection:bg-teal-500 selection:text-white">
+<div class="space-y-6 pb-12 max-w-6xl mx-auto">
 
-  <!-- Top Navbar -->
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+  <!-- Breadcrumb & Active Filter Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
+        <a [routerLink]="['/', urlPath()]" class="hover:text-slate-800">Overview</a>
+        <span>/</span>
+        <a [routerLink]="['/', urlPath(), 'departments']" class="hover:text-slate-800">Departments</a>
+        <span>/</span>
+        <span class="text-slate-900 font-medium">Doctors</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+        Physicians & Live Consultation Queue
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Monitor real-time in-room visits, review daily token capacity, and reserve your sequential token.
+      </p>
+    </div>
+
+    <!-- Active Department Filter Pill -->
+    @if (activeDepartmentName()) {
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-900 text-xs font-semibold self-start sm:self-auto">
+        <span>Unit: <strong>{{ activeDepartmentName() }}</strong></span>
+        <button 
+          type="button" 
+          (click)="clearDepartmentFilter()"
+          class="text-sky-600 hover:text-rose-600 ml-1 font-bold"
+          title="Clear filter">✕</button>
+      </div>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="py-20 text-center">
+      <div class="inline-block w-8 h-8 border-3 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-slate-400 mt-2 font-medium">Finding available doctors and live queue statuses...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+      <span>{{ errorMessage() }}</span>
+      <button type="button" (click)="loadData(urlPath(), activeDepartmentId(), activeDepartmentName())" class="underline font-bold">Retry</button>
+    </div>
+  }
+
+  <!-- Doctors List & Options -->
+  @if (!isLoading() && !errorMessage()) {
+    <div class="space-y-4">
       
-      <div class="flex items-center gap-3">
-        <!-- Back Navigation -->
-        <a 
-          [routerLink]="['/', urlPath(), 'departments']"
-          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-          title="Back to Departments">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </a>
-
-        <div>
-          <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
-            Consultant Physicians
-          </h1>
-          <p class="text-[11px] text-slate-500 truncate">
-            {{ hospital()?.name }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Quick Appointments Link -->
-      <a 
-        [routerLink]="['/', urlPath(), 'appointments']"
-        class="text-xs font-semibold text-slate-600 hover:text-teal-700 transition-colors flex items-center gap-1">
-        <span>My Appointments</span>
-        <span>&rarr;</span>
-      </a>
-
-    </div>
-  </header>
-
-  <!-- Main Doctors Listing Content -->
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
-
-    <!-- Title & Active Filter Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-      <div>
-        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 text-xs font-bold border border-teal-200/60 mb-1">
-          <span>Step 2 of 2</span>
-        </div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Select Your Specialist
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Choose a doctor below to open scheduling and reserve your appointment slot.
-        </p>
-      </div>
-
-      <!-- Department Filter Badge -->
-      @if (activeDepartmentName()) {
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-semibold self-start sm:self-auto">
-          <span>Department: <strong>{{ activeDepartmentName() }}</strong></span>
-          <button 
-            type="button" 
-            (click)="clearDepartmentFilter()"
-            class="text-teal-600 hover:text-rose-600 ml-1 font-bold"
-            title="Clear filter">✕</button>
-        </div>
-      }
-    </div>
-
-    <!-- Loading State -->
-    @if (isLoading()) {
-      <div class="py-20 text-center">
-        <div class="inline-block w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-xs text-slate-400 mt-2 font-medium">Finding available doctors...</p>
-      </div>
-    }
-
-    <!-- Error State -->
-    @if (errorMessage()) {
-      <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
-        <span>{{ errorMessage() }}</span>
-        <button type="button" (click)="loadData(urlPath(), activeDepartmentId(), activeDepartmentName())" class="underline font-bold">Retry</button>
-      </div>
-    }
-
-    <!-- Doctors List & Options -->
-    @if (!isLoading() && !errorMessage()) {
-      <div class="space-y-4">
-        
-        <!-- General Consultation Option -->
-        <div class="p-5 bg-gradient-to-r from-teal-500/10 via-emerald-500/5 to-white rounded-3xl border border-teal-200/80 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
-              🩺
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base font-bold text-slate-900">General OPD / First Available Doctor</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  Fast Track
-                </span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Don't have a specific doctor in mind? Book with any available physician on duty.
-              </p>
-            </div>
+      <!-- General Consultation Option -->
+      <div class="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg bg-sky-50 border border-sky-100 text-sky-700 flex items-center justify-center text-xl shrink-0">
+            🩺
           </div>
-
-          <button 
-            type="button" 
-            (click)="openBooking(null)"
-            class="px-5 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 cursor-pointer self-start sm:self-auto">
-            Book General Visit
-          </button>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-slate-900">General OPD / Next Available Doctor</h3>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Walk-in OPD
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Need immediate triage? Schedule with any on-duty physician.
+            </p>
+          </div>
         </div>
 
-        <!-- Doctors Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          @for (doc of doctors(); track doc._id) {
-            <div class="p-5 bg-white rounded-3xl border border-slate-200/90 shadow-soft hover:shadow-md transition-all flex flex-col justify-between group">
-              <div>
-                <div class="flex items-start gap-4 mb-3">
-                  <!-- Doctor Avatar -->
-                  @if (doc.imageUrl) {
-                    <img 
-                      [src]="apiUrl + '/uploads/' + doc.imageUrl" 
-                      alt="Doctor Photo"
-                      class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-xs shrink-0"
-                      (error)="doc.imageUrl = null">
-                  } @else {
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
-                      {{ doc.name | slice: 0:2 | uppercase }}
+        <button 
+          type="button" 
+          (click)="openBooking(null)"
+          class="btn-primary self-start sm:self-auto text-xs shrink-0 cursor-pointer">
+          Book General Visit
+        </button>
+      </div>
+
+      <!-- Doctors Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @for (doc of doctors(); track doc._id) {
+          <div class="p-5 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-sky-500 transition-all flex flex-col justify-between group">
+            <div>
+              <!-- Header with Avatar & Online Status -->
+              <div class="flex items-start gap-4 mb-3">
+                @if (doc.imageUrl) {
+                  <img 
+                    [src]="getImageUrl(doc.imageUrl)" 
+                    alt="Doctor Photo"
+                    class="w-13 h-13 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0"
+                    (error)="doc.imageUrl = null">
+                } @else {
+                  <div class="w-13 h-13 rounded-lg bg-sky-600 text-white font-bold text-base flex items-center justify-center shrink-0">
+                    {{ doc.name | slice: 0:2 | uppercase }}
+                  </div>
+                }
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors truncate">
+                      {{ doc.name }}
+                    </h3>
+
+                    <!-- Availability & Presence Badges -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      @if (doc.consultationStatus === 'online') {
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Online
+                        </span>
+                      } @else if (doc.consultationStatus === 'break') {
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          On Break
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                          Offline
+                        </span>
+                      }
+
+                      @if (doc.isTokenFull) {
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                          Tokens Full
+                        </span>
+                      }
                     </div>
-                  }
+                  </div>
 
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-1">
-                      <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors truncate">
-                        {{ doc.name }}
-                      </h3>
-                      <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Available
-                      </span>
-                    </div>
+                  <p class="text-xs font-semibold text-sky-600 mt-0.5 truncate">
+                    {{ doc.specialization || doc.department }}
+                  </p>
 
-                    <p class="text-xs font-semibold text-teal-700 mt-0.5 truncate">
-                      {{ doc.specialization || doc.department }}
-                    </p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">
+                    {{ doc.department }} &bull; {{ hospital()?.name }}
+                  </p>
+                </div>
+              </div>
 
-                    <p class="text-[11px] text-slate-400 mt-0.5">
-                      {{ doc.department }} &bull; {{ hospital()?.name }}
-                    </p>
+              <!-- Available Hours & Token Status Pill Box -->
+              <div class="bg-slate-50 rounded-lg p-3 border border-slate-200/80 mb-3 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-500 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Hours:
+                  </span>
+                  <strong class="text-slate-800">{{ doc.availableTime || '09:00 AM - 01:00 PM' }}</strong>
+                </div>
+
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-500">Tokens Today:</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono font-bold text-slate-900">{{ doc.tokensIssuedToday || 0 }} / {{ doc.maxTokensPerDay || 25 }}</span>
+                    <span class="text-[10px] text-slate-500">({{ doc.tokensRemainingToday !== undefined ? doc.tokensRemainingToday : ((doc.maxTokensPerDay || 25) - (doc.tokensIssuedToday || 0)) }} left)</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Action Footer -->
-              <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-xs text-slate-500 font-medium">In-Clinic Consultation</span>
-                
-                <button 
-                  type="button" 
-                  (click)="openBooking(doc)"
-                  class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
-                  <span>Book Appointment</span>
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
+              <!-- In-Room Consultation Status -->
+              <div class="p-2.5 rounded-lg border text-xs bg-slate-50 border-slate-200">
+                @if (doc.consultationStatus === 'break') {
+                  <div class="flex items-center justify-between text-amber-800">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                      <span class="text-xs font-medium">Doctor is temporarily on break</span>
+                    </div>
+                    <span class="text-[10px] uppercase font-bold text-amber-600 bg-amber-100/60 px-1.5 py-0.5 rounded">Break</span>
+                  </div>
+                } @else if (doc.currentVisiting) {
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 animate-pulse"></span>
+                      <div class="truncate">
+                        <span class="text-[11px] text-slate-500 block">In Room (Consulting)</span>
+                        <span class="text-xs font-semibold text-slate-900 truncate block">{{ doc.currentVisiting.patientName }}</span>
+                      </div>
+                    </div>
+                    @if (doc.currentVisiting.tokenNumber) {
+                      <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-white text-slate-800 border border-slate-200 shrink-0">
+                        Token #{{ doc.currentVisiting.tokenNumber }}
+                      </span>
+                    }
+                  </div>
+                } @else if (doc.consultationStatus === 'online') {
+                  <div class="flex items-center justify-between text-emerald-700">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span class="text-xs font-medium">Doctor arrived — Ready for next patient</span>
+                    </div>
+                    <span class="text-[10px] text-emerald-600 uppercase font-bold bg-emerald-100/60 px-1.5 py-0.5 rounded">In Room</span>
+                  </div>
+                } @else {
+                  <div class="flex items-center justify-between text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                      <span class="text-xs">Doctor not arrived yet</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 uppercase font-medium">Offline</span>
+                  </div>
+                }
               </div>
 
             </div>
-          }
+
+            <!-- Action Footer -->
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button 
+                type="button" 
+                (click)="openLiveQueue(doc)"
+                class="text-xs text-sky-600 hover:text-sky-800 font-semibold flex items-center gap-1 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Live Queue Tracker</span>
+              </button>
+              
+              <button 
+                type="button" 
+                (click)="openBooking(doc)"
+                [disabled]="doc.isTokenFull"
+                class="btn-primary text-xs cursor-pointer disabled:opacity-50">
+                <span>{{ doc.isTokenFull ? 'Tokens Full' : 'Book Token' }}</span>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        }
+      </div>
+
+      @if (doctors().length === 0) {
+        <div class="py-16 text-center bg-white rounded-xl border border-dashed border-slate-200">
+          <p class="text-xs text-slate-500">No individual doctors found for this filter.</p>
+          <button 
+            type="button" 
+            (click)="openBooking(null)"
+            class="mt-3 btn-primary text-xs">
+            Schedule with Any Available Doctor
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ============================================== -->
+  <!-- LIVE CONSULTATION QUEUE MODAL                  -->
+  <!-- ============================================== -->
+  @if (isQueueModalOpen() && liveDoctor()) {
+    <div class="modal-backdrop p-0 sm:p-4 items-end sm:items-center">
+      <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-slide-up">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 font-bold text-sm shrink-0">
+              {{ liveDoctor()?.name ? (liveDoctor()!.name | slice: 0:2 | uppercase) : 'DR' }}
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-bold text-slate-900 truncate">{{ liveDoctor()?.name }}</h3>
+              <p class="text-[11px] text-slate-500 truncate">{{ liveDoctor()?.specialization || liveDoctor()?.department }} &bull; Live Queue Status</p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="closeLiveQueue()" 
+            class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center cursor-pointer shrink-0">
+            ✕
+          </button>
         </div>
 
-        @if (doctors().length === 0) {
-          <div class="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300">
-            <p class="text-xs text-slate-500">No individual doctors found for this filter.</p>
-            <button 
-              type="button" 
-              (click)="openBooking(null)"
-              class="mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-semibold">
-              Schedule with Any Available Doctor
-            </button>
+        @if (isLiveLoading()) {
+          <div class="py-12 text-center">
+            <div class="inline-block w-7 h-7 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs text-slate-400 mt-2">Checking real-time room consultation...</p>
+          </div>
+        } @else if (liveStatus()) {
+          <!-- Stats row -->
+          <div class="grid grid-cols-3 gap-2.5 text-center">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="block text-[10px] font-semibold text-slate-500 uppercase">Tokens Issued</span>
+              <span class="block text-base font-bold text-slate-900 mt-0.5">
+                {{ liveStatus()?.doctor?.tokensIssuedToday }} / {{ liveStatus()?.doctor?.maxTokensPerDay }}
+              </span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="block text-[10px] font-semibold text-slate-500 uppercase">Tokens Left</span>
+              <span class="block text-base font-bold text-sky-600 mt-0.5">
+                {{ liveStatus()?.doctor?.tokensRemainingToday }}
+              </span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="block text-[10px] font-semibold text-slate-500 uppercase">In Queue</span>
+              <span class="block text-base font-bold text-amber-600 mt-0.5">
+                {{ liveStatus()?.totalInQueue }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Currently In-Room Patient -->
+          <div class="p-4 rounded-xl border" [class]="liveStatus()?.currentPatient ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-50 border-slate-200 text-slate-600'">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider block text-slate-600 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Doctor Room Status
+              </span>
+              @if (liveStatus()?.currentPatient?.tokenNumber) {
+                <span class="text-[10px] font-semibold text-slate-500 uppercase">Current Patient</span>
+              }
+            </div>
+
+            @if (liveStatus()?.currentPatient) {
+              <div class="flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200">
+                <div class="min-w-0">
+                  <span class="text-[11px] text-slate-500 block font-medium">Currently with Doctor:</span>
+                  <h4 class="text-sm font-bold text-slate-900 truncate">{{ liveStatus()?.currentPatient?.patientName }}</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Session: {{ liveStatus()?.currentPatient?.appointmentTime || 'In session' }}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">Serving Token</span>
+                  <span class="px-2.5 py-1 rounded font-mono font-bold text-sm bg-slate-100 text-slate-800 border border-slate-300 inline-block">
+                    #{{ liveStatus()?.currentPatient?.tokenNumber || '—' }}
+                  </span>
+                </div>
+              </div>
+            } @else {
+              <div class="p-3 bg-white rounded-lg text-center border border-slate-200">
+                <p class="text-xs text-slate-500 font-medium">The doctor is currently available between consultations or waiting for the next patient.</p>
+              </div>
+            }
+          </div>
+
+          <!-- Your Position in Queue if patient has booked with this doctor -->
+          @if (liveStatus()?.yourStatus?.appointment) {
+            <div class="p-4 rounded-xl bg-sky-50 border border-sky-200 text-sky-950">
+              <span class="text-[10px] font-bold uppercase tracking-wider block mb-1">Your Token Position</span>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs font-semibold">Your Token: <strong class="text-sky-700">#{{ liveStatus()?.yourStatus?.tokenNumber }}</strong></p>
+                  <p class="text-xs text-sky-800 mt-0.5">{{ liveStatus()?.yourStatus?.message }}</p>
+                </div>
+                @if (liveStatus()?.yourStatus?.position !== null) {
+                  <span class="px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold font-mono">
+                    {{ liveStatus()?.yourStatus?.position === 0 ? 'Next Up!' : liveStatus()?.yourStatus?.position! + ' ahead of you' }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Upcoming in Queue -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 mb-2">Upcoming in Queue</h4>
+            @if (liveStatus()?.upcomingPatients && liveStatus()!.upcomingPatients.length > 0) {
+              <div class="space-y-1.5 max-h-40 overflow-y-auto">
+                @for (pt of liveStatus()!.upcomingPatients; track pt.tokenNumber) {
+                  <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 text-xs border border-slate-100">
+                    <div class="flex items-center gap-2">
+                      <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[10px]">
+                        {{ pt.position }}
+                      </span>
+                      <span class="font-medium text-slate-800">{{ pt.patientName }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      @if (pt.appointmentTime) {
+                        <span class="text-[11px] text-slate-500 flex items-center gap-1">
+                          <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {{ pt.appointmentTime }}
+                        </span>
+                      }
+                      <span class="font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 text-[11px]">
+                        Token #{{ pt.tokenNumber }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-xs text-slate-400 italic">No other patients waiting in queue today.</p>
+            }
           </div>
         }
 
-      </div>
-    }
+        <!-- Footer Modal Actions -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button 
+            type="button" 
+            (click)="closeLiveQueue()" 
+            class="btn-secondary text-xs">
+            Close
+          </button>
+          <button 
+            type="button" 
+            (click)="closeLiveQueue(); openBooking(liveDoctor())" 
+            [disabled]="liveDoctor()?.isTokenFull"
+            class="btn-primary text-xs">
+            Book Token with Doctor
+          </button>
+        </div>
 
-  </main>
+      </div>
+    </div>
+  }
 
   <!-- ============================================== -->
   <!-- SLIDE-UP BOOKING BOTTOM SHEET                  -->

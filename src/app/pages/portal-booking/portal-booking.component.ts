@@ -10,6 +10,7 @@ import { HospitalInfo, Department, Doctor, Appointment } from '../../models/clin
 import { AuthModalComponent } from '../../components/auth-modal/auth-modal.component';
 import { AppointmentHistoryComponent } from '../../components/appointment-history/appointment-history.component';
 import { environment } from '../../../environments/environment';
+import { getMediaUrl } from '../../utils/media.util';
 
 @Component({
   selector: 'app-portal-booking',
@@ -26,6 +27,7 @@ import { environment } from '../../../environments/environment';
 })
 export class PortalBookingComponent implements OnInit {
   readonly apiUrl = environment.apiUrl;
+  readonly getImageUrl = getMediaUrl;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);

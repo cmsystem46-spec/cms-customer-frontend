@@ -8,12 +8,12 @@
       <div class="flex items-center gap-3">
         @if (hospital()?.logoUrl) {
           <img 
-            [src]="apiUrl + '/uploads/' + hospital()?.logoUrl" 
+            [src]="getImageUrl(hospital()?.logoUrl)" 
             alt="Clinic Logo"
-            class="w-10 h-10 rounded-2xl object-cover border border-slate-200 shadow-xs"
+            class="w-10 h-10 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shadow-xs"
             (error)="hospital()!.logoUrl = null">
         } @else {
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shadow-xs">
+          <div class="w-10 h-10 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold text-base shadow-xs">
             {{ hospital()?.name ? (hospital()?.name | slice:0:1 | uppercase) : 'H' }}
           </div>
         }
@@ -99,62 +99,57 @@
     <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
 
       <!-- Hospital Banner & Quick Meta Card -->
-      <div class="bg-gradient-to-r from-teal-900 via-slate-900 to-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-6 relative overflow-hidden">
-        <!-- Background subtle glow -->
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-xs mb-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="max-w-2xl">
+          <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200 mb-2">
+            Online Appointment System
+          </span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {{ hospital()?.name }}
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
+            {{ hospital()?.description || 'Book consultations with certified physicians. Select a doctor below to reserve a scheduled token.' }}
+          </p>
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div class="max-w-2xl">
-            <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-teal-400 mb-1">
-              Online Appointment System
-            </span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {{ hospital()?.name }}
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-              {{ hospital()?.description || 'Book consultations with experienced medical specialists. No registration required to get started.' }}
-            </p>
+          <!-- Specialties Chips -->
+          @if (hospital()?.specialties && hospital()!.specialties!.length > 0) {
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              @for (spec of hospital()!.specialties!; track spec) {
+                <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  {{ spec }}
+                </span>
+              }
+            </div>
+          }
+        </div>
 
-            <!-- Specialties Chips -->
-            @if (hospital()?.specialties && hospital()!.specialties!.length > 0) {
-              <div class="flex flex-wrap gap-1.5 mt-4">
-                @for (spec of hospital()!.specialties!; track spec) {
-                  <span class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/10 backdrop-blur-sm text-teal-200 border border-white/10">
-                    {{ spec }}
-                  </span>
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Contact Details Box -->
-          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-xs space-y-2 shrink-0 md:min-w-[260px]">
-            @if (hospital()?.operatingHours) {
-              <div class="flex items-center gap-2 text-slate-200">
-                <svg class="w-4 h-4 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{{ hospital()?.operatingHours }}</span>
-              </div>
-            }
-            @if (hospital()?.phoneNumber) {
-              <div class="flex items-center gap-2 text-slate-200">
-                <svg class="w-4 h-4 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                <a [href]="'tel:' + hospital()?.phoneNumber" class="hover:underline">{{ hospital()?.phoneNumber }}</a>
-              </div>
-            }
-            @if (hospital()?.address) {
-              <div class="flex items-center gap-2 text-slate-300">
-                <svg class="w-4 h-4 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="truncate">{{ hospital()?.address }}, {{ hospital()?.city }}</span>
-              </div>
-            }
-          </div>
+        <!-- Contact Details Box -->
+        <div class="bg-slate-50 rounded-lg p-3.5 border border-slate-200 text-xs space-y-2 shrink-0 md:min-w-[240px]">
+          @if (hospital()?.operatingHours) {
+            <div class="flex items-center gap-2 text-slate-700">
+              <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{{ hospital()?.operatingHours }}</span>
+            </div>
+          }
+          @if (hospital()?.phoneNumber) {
+            <div class="flex items-center gap-2 text-slate-700">
+              <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <a [href]="'tel:' + hospital()?.phoneNumber" class="hover:underline font-medium">{{ hospital()?.phoneNumber }}</a>
+            </div>
+          }
+          @if (hospital()?.address) {
+            <div class="flex items-center gap-2 text-slate-600">
+              <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="truncate">{{ hospital()?.address }}, {{ hospital()?.city }}</span>
+            </div>
+          }
         </div>
       </div>
 
@@ -385,12 +380,12 @@
                     
                     @if (doc.imageUrl) {
                       <img 
-                        [src]="apiUrl + '/uploads/' + doc.imageUrl" 
+                        [src]="getImageUrl(doc.imageUrl)" 
                         alt="Doctor Photo"
-                        class="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-2xs shrink-0"
+                        class="w-12 h-12 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
                         (error)="doc.imageUrl = null">
                     } @else {
-                      <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white font-bold text-base flex items-center justify-center shrink-0 shadow-2xs">
+                      <div class="w-12 h-12 rounded-lg bg-sky-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
                         {{ doc.name | slice: 0:2 | uppercase }}
                       </div>
                     }
@@ -551,18 +546,16 @@
               </div>
 
               <!-- Value-Add Optional Sign In / History Explanation Box -->
-              <div class="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-teal-50/70 via-emerald-50/50 to-slate-50 border border-teal-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-start gap-3">
-                  <div class="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+                  <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 text-xs">
+                    🔒
                   </div>
                   <div>
                     <h4 class="text-xs font-bold text-slate-900">
                       Sign in or Sign up (Optional)
                     </h4>
-                    <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                    <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
                       @if (authService.isAuthenticated()) {
                         <span>You are logged in as <strong>{{ authService.user()?.email }}</strong>. All your past and future appointments are synced!</span>
                       } @else {
@@ -576,7 +569,7 @@
                   <button 
                     type="button" 
                     (click)="openAuthModal()" 
-                    class="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-teal-800 text-xs font-semibold border border-teal-200 shadow-2xs transition-colors shrink-0 cursor-pointer self-start sm:self-auto">
+                    class="btn-secondary text-xs shrink-0 self-start sm:self-auto">
                     Sign In with Email OTP
                   </button>
                 }
@@ -584,10 +577,8 @@
 
               <!-- Error Box -->
               @if (bookingError()) {
-                <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
-                  <svg class="w-4 h-4 text-rose-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+                  <span class="shrink-0 font-bold">⚠️</span>
                   <span>{{ bookingError() }}</span>
                 </div>
               }
@@ -597,16 +588,16 @@
                 <button 
                   type="submit" 
                   [disabled]="isSubmitting()"
-                  class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-teal-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                  class="btn-primary w-full text-xs sm:text-sm py-3 justify-center disabled:opacity-50">
                   @if (isSubmitting()) {
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                     </svg>
                     <span>Confirming Appointment...</span>
                   } @else {
                     <span>Confirm & Book Appointment</span>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   }

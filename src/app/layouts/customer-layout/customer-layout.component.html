@@ -1,0 +1,247 @@
+<div class="layout-wrapper" [class.collapsed]="isSidebarCollapsed()">
+  <!-- Mobile Backdrop Overlay -->
+  @if (isMobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+  }
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen()">
+    <!-- Sidebar Brand Header -->
+    <div class="sidebar-brand">
+      <div class="brand-icon" [class.has-logo]="!!hospitalLogo()">
+        @if (hospitalLogo()) {
+          <img
+            [src]="hospitalLogo()"
+            [alt]="hospitalName()"
+            class="brand-logo-img"
+            (error)="logoFailed.set(true)"
+          />
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m-8-8h16"/>
+            <path d="M7 12h2l1.5-3 2 6 2-4 1.5 1h3" stroke-width="1.6"/>
+          </svg>
+        }
+      </div>
+      <div class="brand-text">
+        <h2 class="brand-title">{{ hospitalName() }}</h2>
+        <span class="brand-subtitle">Patient Portal</span>
+      </div>
+      <button type="button" class="collapse-btn" (click)="toggleCollapse()" title="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="sidebar-nav">
+      <!-- Section: Clinical Services -->
+      <div class="nav-section">
+        <span class="section-heading">Facility Navigation</span>
+        
+        <!-- Home / Overview -->
+        <a
+          [routerLink]="['/', urlPath()]"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileMenu()"
+          class="nav-link"
+        >
+          <div class="link-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <span class="link-label">Facility Overview</span>
+        </a>
+
+        <!-- Departments -->
+        <a
+          [routerLink]="['/', urlPath(), 'departments']"
+          routerLinkActive="active"
+          (click)="closeMobileMenu()"
+          class="nav-link"
+        >
+          <div class="link-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+          </div>
+          <span class="link-label">Departments</span>
+        </a>
+
+        <!-- Doctors & Token Queue -->
+        <a
+          [routerLink]="['/', urlPath(), 'doctors']"
+          routerLinkActive="active"
+          (click)="closeMobileMenu()"
+          class="nav-link"
+        >
+          <div class="link-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <span class="link-label">Doctors & Live Queue</span>
+          <span class="nav-badge live-pulse">Live</span>
+        </a>
+      </div>
+
+      <!-- Section: My Appointments -->
+      <div class="nav-section">
+        <span class="section-heading">My Healthcare</span>
+        
+        <a
+          [routerLink]="['/', urlPath(), 'appointments']"
+          routerLinkActive="active"
+          (click)="closeMobileMenu()"
+          class="nav-link"
+        >
+          <div class="link-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <span class="link-label">My Appointments & Tokens</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer with Device / Account Identifier -->
+    <div class="sidebar-footer">
+      <div class="profile-card">
+        <div class="avatar-circle">
+          <span>{{ authService.isAuthenticated() ? (authService.user()?.email?.substring(0, 2)?.toUpperCase() || 'US') : 'ID' }}</span>
+        </div>
+        <div class="profile-details">
+          @if (authService.isAuthenticated()) {
+            <span class="profile-name">{{ authService.user()?.email }}</span>
+            <span class="profile-email">Verified Patient</span>
+          } @else {
+            <span class="profile-name">Guest Browser</span>
+            <span class="profile-email font-mono">{{ deviceService.getDeviceId() | slice:0:10 }}...</span>
+          }
+        </div>
+      </div>
+      @if (authService.isAuthenticated()) {
+        <button type="button" class="logout-action-btn" (click)="authService.logout()" title="Sign Out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span class="logout-label">Sign Out</span>
+        </button>
+      }
+    </div>
+  </aside>
+
+  <!-- Main View Container -->
+  <div class="main-wrapper">
+    <!-- Main Topbar -->
+    <header class="main-topbar">
+      <div class="topbar-left">
+        <!-- Mobile Drawer Button -->
+        <button
+          type="button"
+          class="mobile-menu-btn"
+          (click)="toggleMobileMenu()"
+          title="Open Menu"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="facility-pill">
+          <span class="status-dot"></span>
+          <span>Facility: <strong>{{ hospitalName() }}</strong></span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <a 
+          [routerLink]="['/', urlPath(), 'doctors']"
+          class="quick-book-btn"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span>Book Token</span>
+        </a>
+        <div class="header-badge">
+          <span class="badge-tag">Patient Portal</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dynamic Router Outlet Page Content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar (App-like thumb reach) -->
+    <nav class="mobile-bottom-nav">
+      <a 
+        [routerLink]="['/', urlPath()]" 
+        routerLinkActive="active" 
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="bottom-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Overview</span>
+      </a>
+
+      <a 
+        [routerLink]="['/', urlPath(), 'departments']" 
+        routerLinkActive="active" 
+        class="bottom-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+        <span>Units</span>
+      </a>
+
+      <a 
+        [routerLink]="['/', urlPath(), 'doctors']" 
+        routerLinkActive="active" 
+        class="bottom-nav-item active-accent">
+        <div class="center-token-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <span>Doctors & Queue</span>
+      </a>
+
+      <a 
+        [routerLink]="['/', urlPath(), 'appointments']" 
+        routerLinkActive="active" 
+        class="bottom-nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>My Tokens</span>
+      </a>
+    </nav>
+  </div>
+</div>

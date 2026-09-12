@@ -24,9 +24,17 @@ export class DepartmentListComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.route.parent?.params.subscribe((parentParams) => {
+      const path = parentParams['urlPath'] || this.route.snapshot.params['urlPath'];
+      if (path) {
+        this.urlPath.set(path);
+        this.loadData(path);
+      }
+    });
+
     this.route.params.subscribe((params) => {
       const path = params['urlPath'];
-      if (path) {
+      if (path && path !== this.urlPath()) {
         this.urlPath.set(path);
         this.loadData(path);
       }

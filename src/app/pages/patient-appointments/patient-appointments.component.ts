@@ -22,9 +22,23 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly showAuthModal = signal<boolean>(false);
 
   ngOnInit(): void {
+    this.route.parent?.params.subscribe((parentParams) => {
+      const path = parentParams['urlPath'] || this.route.snapshot.params['urlPath'];
+      if (path) {
+        this.urlPath.set(path);
+        this.clinicService.getClinicByUrlPath(path).subscribe({
+          next: (res) => {
+            if (res.data) {
+              this.hospital.set(res.data);
+            }
+          },
+        });
+      }
+    });
+
     this.route.params.subscribe((params) => {
       const path = params['urlPath'];
-      if (path) {
+      if (path && path !== this.urlPath()) {
         this.urlPath.set(path);
         this.clinicService.getClinicByUrlPath(path).subscribe({
           next: (res) => {

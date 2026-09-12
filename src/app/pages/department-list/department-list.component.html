@@ -1,155 +1,129 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 pb-20 selection:bg-teal-500 selection:text-white">
+<div class="space-y-6 pb-12 max-w-6xl mx-auto">
 
-  <!-- Top Navbar with Back Navigation -->
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-      
-      <div class="flex items-center gap-3">
-        <!-- Back to Clinic Home -->
-        <a 
-          [routerLink]="['/', urlPath()]"
-          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-          title="Back to Clinic Overview">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </a>
-
-        <div>
-          <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
-            Medical Departments
-          </h1>
-          <p class="text-[11px] text-slate-500 truncate">
-            {{ hospital()?.name }}
-          </p>
-        </div>
+  <!-- Breadcrumb & Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
+        <a [routerLink]="['/', urlPath()]" class="hover:text-slate-800">Overview</a>
+        <span>/</span>
+        <span class="text-slate-900 font-medium">Departments</span>
       </div>
-
-      <a 
-        [routerLink]="['/', urlPath(), 'doctors']"
-        class="text-xs font-semibold text-teal-600 hover:text-teal-800 transition-colors flex items-center gap-1">
-        <span>All Doctors</span>
-        <span>&rarr;</span>
-      </a>
-
-    </div>
-  </header>
-
-  <!-- Main Department Selection Content -->
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
-
-    <!-- Page Title Header -->
-    <div class="space-y-1">
-      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 text-xs font-bold border border-teal-200/60">
-        <span>Step 1 of 2</span>
-      </div>
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-        Select a Department
-      </h2>
-      <p class="text-xs sm:text-sm text-slate-500">
-        Choose a clinical specialty below to view available physicians and book your visit.
+      <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+        Medical Departments
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Choose a clinical specialty below to view specialist doctors and live token availability.
       </p>
     </div>
 
-    <!-- Loading -->
-    @if (isLoading()) {
-      <div class="py-20 text-center">
-        <div class="inline-block w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-xs text-slate-400 mt-2 font-medium">Loading clinical departments...</p>
-      </div>
-    }
+    <a 
+      [routerLink]="['/', urlPath(), 'doctors']"
+      class="btn-secondary self-start sm:self-auto text-xs"
+    >
+      <span>All Doctors</span>
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      </svg>
+    </a>
+  </div>
 
-    <!-- Error State -->
-    @if (errorMessage()) {
-      <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
-        <span>{{ errorMessage() }}</span>
-        <button type="button" (click)="loadData(urlPath())" class="underline font-bold">Retry</button>
-      </div>
-    }
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="py-20 text-center">
+      <div class="inline-block w-8 h-8 border-3 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs text-slate-400 mt-2 font-medium">Loading clinical departments...</p>
+    </div>
+  }
 
-    <!-- Departments Grid -->
-    @if (!isLoading() && !errorMessage()) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        
-        <!-- All Specialists Option Card -->
+  <!-- Error State -->
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+      <span>{{ errorMessage() }}</span>
+      <button type="button" (click)="loadData(urlPath())" class="underline font-bold">Retry</button>
+    </div>
+  }
+
+  <!-- Departments Grid -->
+  @if (!isLoading() && !errorMessage()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+      <!-- All Specialists Card -->
+      <div 
+        (click)="router.navigate(['/', urlPath(), 'doctors'])"
+        class="p-5 bg-white rounded-xl border border-slate-200 hover:border-sky-500 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between group">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-xl">
+              🏥
+            </div>
+            <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+              All Units
+            </span>
+          </div>
+
+          <h3 class="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+            All Doctors Roster
+          </h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Explore all certified physicians and practitioners across every department.
+          </p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-sky-600 font-semibold">
+          <span>View Specialists</span>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Department Cards -->
+      @for (dept of departments(); track dept._id) {
         <div 
-          (click)="router.navigate(['/', urlPath(), 'doctors'])"
-          class="p-5 bg-white rounded-3xl border border-slate-200/90 hover:border-teal-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group">
+          (click)="selectDepartment(dept)"
+          class="p-5 bg-white rounded-xl border border-slate-200 hover:border-sky-500 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between group">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                🏥
+              <div class="w-10 h-10 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-xl">
+                {{ getDepartmentIcon(dept.icon || dept.name) }}
               </div>
-              <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                All Specializations
-              </span>
+              
+              @if (dept.doctorCount) {
+                <span class="text-xs font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                  {{ dept.doctorCount }} Doctor{{ dept.doctorCount > 1 ? 's' : '' }}
+                </span>
+              } @else {
+                <span class="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                  Department
+                </span>
+              }
             </div>
 
-            <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
-              All Available Doctors
+            <h3 class="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+              {{ dept.name }}
             </h3>
-            <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-              Explore all physicians across departments or book a general OPD consultation.
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+              {{ dept.description || 'Specialized clinical consultations, diagnosis, and patient care.' }}
             </p>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-teal-600 font-semibold group-hover:translate-x-0.5 transition-transform">
-            <span>Browse Specialists</span>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-sky-600 font-semibold">
+            <span>Choose Doctor & Book</span>
             <span>&rarr;</span>
           </div>
         </div>
-
-        <!-- Dynamic Department Cards from API -->
-        @for (dept of departments(); track dept._id) {
-          <div 
-            (click)="selectDepartment(dept)"
-            class="p-5 bg-white rounded-3xl border border-slate-200/90 hover:border-teal-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative">
-            <div>
-              <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                  {{ getDepartmentIcon(dept.icon || dept.name) }}
-                </div>
-                
-                @if (dept.doctorCount) {
-                  <span class="text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200/60">
-                    {{ dept.doctorCount }} Specialist{{ dept.doctorCount > 1 ? 's' : '' }}
-                  </span>
-                } @else {
-                  <span class="text-[11px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200/60">
-                    Department
-                  </span>
-                }
-              </div>
-
-              <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
-                {{ dept.name }}
-              </h3>
-              <p class="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
-                {{ dept.description || 'Specialized consultations, diagnosis, and patient care.' }}
-              </p>
-            </div>
-
-            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-teal-600 font-semibold group-hover:translate-x-0.5 transition-transform">
-              <span>Choose Doctors</span>
-              <span>&rarr;</span>
-            </div>
-          </div>
-        }
-
-      </div>
-
-      @if (departments().length === 0) {
-        <div class="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300">
-          <p class="text-xs text-slate-500">No departments configured yet.</p>
-          <a 
-            [routerLink]="['/', urlPath(), 'doctors']"
-            class="inline-block mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-semibold">
-            See All Doctors Directly
-          </a>
-        </div>
       }
-    }
 
-  </main>
+    </div>
+
+    @if (departments().length === 0) {
+      <div class="py-16 text-center bg-white rounded-xl border border-dashed border-slate-200">
+        <p class="text-xs text-slate-500">No departments configured yet.</p>
+        <a 
+          [routerLink]="['/', urlPath(), 'doctors']"
+          class="inline-block mt-3 px-4 py-2 bg-sky-600 text-white rounded-lg text-xs font-semibold">
+          See All Doctors Directly
+        </a>
+      </div>
+    }
+  }
 
 </div>

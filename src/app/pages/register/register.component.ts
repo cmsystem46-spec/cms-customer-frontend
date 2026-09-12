@@ -6,6 +6,7 @@ import { AdditionalCustomerData, RegisterPayload } from '../../models/customer.m
 import { PromptModalComponent } from '../../components/prompt-modal/prompt-modal.component';
 import { AuthService } from '../../services/auth.service';
 import { BottomSheetComponent } from '../../components/bottom-sheet/bottom-sheet.component';
+import { getMediaUrl } from '../../utils/media.util';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +16,7 @@ import { BottomSheetComponent } from '../../components/bottom-sheet/bottom-sheet
   styleUrl: './register.component.css'
 })
 export class RegisterComponent implements OnInit {
+  readonly getImageUrl = getMediaUrl;
   private router = inject(Router);
   private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
