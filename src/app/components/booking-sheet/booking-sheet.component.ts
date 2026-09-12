@@ -1,0 +1,254 @@
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AppointmentService } from '../../services/appointment.service';
+import { AuthService } from '../../services/auth.service';
+import { DeviceService } from '../../services/device.service';
+import { HospitalInfo, Department, Doctor, Appointment } from '../../models/clinic.model';
+
+@Component({
+  selector: 'app-booking-sheet',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './booking-sheet.component.html',
+  styleUrl: './booking-sheet.component.css',
+})
+export class BookingSheetComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly appointmentService = inject(AppointmentService);
+  readonly authService = inject(AuthService);
+  private readonly deviceService = inject(DeviceService);
+
+  @Input({ required: true }) hospital!: HospitalInfo;
+  @Input() doctor: Doctor | null = null;
+  @Input() department: Department | null = null;
+  @Input() urlPath: string = '';
+
+  @Output() close = new EventEmitter<void>();
+  @Output() appointmentBooked = new EventEmitter<Appointment>();
+
+  // State
+  bookingForm!: FormGroup;
+  readonly isSubmitting = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly confirmedAppointment = signal<Appointment | null>(null);
+
+  // Sign-in / OTP Flow within sheet
+  readonly authChoice = signal<'UNDECIDED' | 'WANTS_AUTH' | 'GUEST'>('UNDECIDED');
+  readonly otpStep = signal<'NONE' | 'INPUT_EMAIL' | 'INPUT_OTP' | 'VERIFIED'>('NONE');
+  readonly otpCode = signal<string>('');
+  readonly isSendingOtp = signal<boolean>(false);
+  readonly isVerifyingOtp = signal<boolean>(false);
+  readonly otpMessage = signal<string | null>(null);
+  readonly otpError = signal<string | null>(null);
+
+  // Time slots & Dates
+  readonly availableTimeSlots: string[] = [
+    '09:00 AM',
+    '09:30 AM',
+    '10:00 AM',
+    '10:30 AM',
+    '11:00 AM',
+    '11:30 AM',
+    '02:00 PM',
+    '02:30 PM',
+    '03:00 PM',
+    '03:30 PM',
+    '04:30 PM',
+    '05:00 PM',
+  ];
+
+  readonly quickDates = signal<{ label: string; dateStr: string; dayName: string }[]>([]);
+  readonly selectedDateStr = signal<string>('');
+  readonly selectedTimeSlot = signal<string>('10:00 AM');
+
+  ngOnInit(): void {
+    this.initQuickDates();
+    this.initForm();
+
+    // Check if already authenticated
+    if (this.authService.isAuthenticated()) {
+      this.authChoice.set('WANTS_AUTH');
+      this.otpStep.set('VERIFIED');
+    }
+  }
+
+  private initQuickDates(): void {
+    const dates = [];
+    const today = new Date();
+
+    for (let i = 0; i < 6; i++) {
+      const d = new Date();
+      d.setDate(today.getDate() + i);
+
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      let label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      let dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+
+      if (i === 0) dayName = 'Today';
+      if (i === 1) dayName = 'Tomorrow';
+
+      dates.push({ label, dateStr, dayName });
+    }
+
+    this.quickDates.set(dates);
+    if (dates.length > 0) {
+      this.selectedDateStr.set(dates[0].dateStr);
+    }
+  }
+
+  private initForm(): void {
+    const currentUser = this.authService.user();
+    const defaultDate = this.selectedDateStr();
+
+    this.bookingForm = this.fb.group({
+      patientName: ['', [Validators.required, Validators.minLength(2)]],
+      phoneNumber: [
+        currentUser?.phoneNumber || '',
+        [Validators.required, Validators.pattern(/^[0-9+ ]{8,15}$/)],
+      ],
+      email: [
+        currentUser?.email || '',
+        [Validators.required, Validators.email],
+      ],
+      appointmentDate: [defaultDate, Validators.required],
+      appointmentTime: [this.selectedTimeSlot(), Validators.required],
+      reason: [''],
+    });
+  }
+
+  selectDate(dateStr: string): void {
+    this.selectedDateStr.set(dateStr);
+    this.bookingForm.patchValue({ appointmentDate: dateStr });
+  }
+
+  selectSlot(slot: string): void {
+    this.selectedTimeSlot.set(slot);
+    this.bookingForm.patchValue({ appointmentTime: slot });
+  }
+
+  // Auth Choice Handlers
+  chooseSignIn(): void {
+    this.authChoice.set('WANTS_AUTH');
+    const emailVal = this.bookingForm.get('email')?.value;
+    if (emailVal && emailVal.includes('@')) {
+      this.requestOtp(emailVal);
+    } else {
+      this.otpStep.set('INPUT_EMAIL');
+    }
+  }
+
+  chooseGuest(): void {
+    this.authChoice.set('GUEST');
+    this.otpStep.set('NONE');
+  }
+
+  requestOtp(emailToSend?: string): void {
+    const emailVal = (emailToSend || this.bookingForm.get('email')?.value || '').trim();
+    if (!emailVal || !emailVal.includes('@')) {
+      this.otpError.set('Please enter a valid email address first.');
+      return;
+    }
+
+    this.isSendingOtp.set(true);
+    this.otpError.set(null);
+    this.otpMessage.set(null);
+
+    this.authService.sendOtp(emailVal).subscribe({
+      next: (res) => {
+        this.isSendingOtp.set(false);
+        this.otpStep.set('INPUT_OTP');
+        this.otpMessage.set(res.message || '6-digit verification code sent to your email.');
+      },
+      error: (err) => {
+        this.isSendingOtp.set(false);
+        this.otpError.set(err.error?.message || 'Failed to send verification email. Please check email address.');
+      },
+    });
+  }
+
+  verifyOtpCode(): void {
+    const emailVal = (this.bookingForm.get('email')?.value || '').trim();
+    const code = this.otpCode().trim();
+
+    if (!code || code.length < 4) {
+      this.otpError.set('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    this.isVerifyingOtp.set(true);
+    this.otpError.set(null);
+
+    this.authService.verifyOtp(emailVal, code).subscribe({
+      next: () => {
+        this.isVerifyingOtp.set(false);
+        this.otpStep.set('VERIFIED');
+        this.otpMessage.set('Email verified! Your full appointment history will be linked.');
+      },
+      error: (err) => {
+        this.isVerifyingOtp.set(false);
+        this.otpError.set(err.error?.message || 'Invalid or expired code. Please try again.');
+      },
+    });
+  }
+
+  // Final Booking Submission
+  confirmBooking(): void {
+    if (this.bookingForm.invalid) {
+      this.bookingForm.markAllAsTouched();
+      this.errorMessage.set('Please complete all required fields (Name, Phone Number, and Email).');
+      return;
+    }
+
+    const formValues = this.bookingForm.value;
+    const deviceId = this.deviceService.getDeviceId();
+
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    const doc = this.doctor;
+    const dept = this.department;
+
+    const payload = {
+      patientName: formValues.patientName.trim(),
+      phoneNumber: formValues.phoneNumber.trim(),
+      email: formValues.email.trim().toLowerCase(),
+      urlPath: this.urlPath || this.hospital.urlPath,
+      hospitalId: this.hospital._id,
+      department: dept ? dept.name : doc?.department || 'General Medicine',
+      departmentId: dept ? dept._id : typeof doc?.departmentId === 'string' ? doc.departmentId : doc?.departmentId?._id,
+      doctorId: doc ? doc._id : undefined,
+      strDeviceId: deviceId,
+      appointmentDate: formValues.appointmentDate || this.selectedDateStr(),
+      appointmentTime: formValues.appointmentTime || this.selectedTimeSlot(),
+      reason: formValues.reason ? formValues.reason.trim() : undefined,
+    };
+
+    this.appointmentService.createAppointment(payload).subscribe({
+      next: (res) => {
+        this.isSubmitting.set(false);
+        if (res.data) {
+          this.confirmedAppointment.set(res.data);
+          this.appointmentBooked.emit(res.data);
+        }
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set(
+          err.error?.message || 'Failed to schedule appointment. Please review your details.'
+        );
+      },
+    });
+  }
+
+  goToAppointments(): void {
+    this.close.emit();
+    this.router.navigate(['/', this.urlPath || this.hospital.urlPath, 'appointments']);
+  }
+}

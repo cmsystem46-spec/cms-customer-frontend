@@ -1,0 +1,144 @@
+<div class="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 backdrop-blur-xs animate-fade-in" (click)="onCloseSheet()">
+  
+  <!-- Bottom Sheet Drawer Panel -->
+  <div 
+    class="w-full max-w-lg mx-auto bg-white border-t border-stone-200 rounded-t-[28px] shadow-sheet flex flex-col max-h-[88vh] animate-slide-up" 
+    (click)="$event.stopPropagation()">
+    
+    <!-- Drag Handle -->
+    <div class="w-10 h-1 bg-stone-300 rounded-full mx-auto mt-3 mb-2"></div>
+
+    <!-- Sheet Header -->
+    <div class="flex items-center justify-between px-6 py-3.5 border-b border-stone-100">
+      <div>
+        <h3 class="text-sm font-semibold text-neutral-900 tracking-tight">Additional Details</h3>
+        <p class="text-[11px] text-neutral-400">Complete your profile information</p>
+      </div>
+      <button 
+        type="button" 
+        (click)="onCloseSheet()" 
+        class="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition-colors cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Scrollable Form Body with customizable fields -->
+    <form (ngSubmit)="onSubmit()" class="flex flex-col flex-1 overflow-hidden">
+      <div class="p-6 overflow-y-auto space-y-4 text-left no-scrollbar flex-1">
+        
+        <!-- ============================================================= -->
+        <!-- CUSTOMIZABLE FIELD 1: Email Address                           -->
+        <!-- ============================================================= -->
+        <div>
+          <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">Email Address</label>
+          <input 
+            type="email" 
+            name="customEmail"
+            [(ngModel)]="additionalData.email"
+            placeholder="name@example.com"
+            class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- CUSTOMIZABLE FIELD 2: Street Address                          -->
+        <!-- ============================================================= -->
+        <div>
+          <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">Street Address</label>
+          <input 
+            type="text" 
+            name="customAddress"
+            [(ngModel)]="additionalData.address"
+            placeholder="123 Main St, Suite 400"
+            class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- CUSTOMIZABLE FIELD 3 & 4: City and State                      -->
+        <!-- ============================================================= -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">City</label>
+            <input 
+              type="text" 
+              name="customCity"
+              [(ngModel)]="additionalData.city"
+              placeholder="Seattle"
+              class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">State / Region</label>
+            <input 
+              type="text" 
+              name="customState"
+              [(ngModel)]="additionalData.state"
+              placeholder="WA"
+              class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- CUSTOMIZABLE FIELD 5: Postal Code & Alternate Phone           -->
+        <!-- ============================================================= -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">Postal Code</label>
+            <input 
+              type="text" 
+              name="customPincode"
+              [(ngModel)]="additionalData.pincode"
+              placeholder="98101"
+              class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">Alternate Phone</label>
+            <input 
+              type="tel" 
+              name="customAltPhone"
+              [(ngModel)]="additionalData.alternatePhone"
+              placeholder="+1 (555) 000-0000"
+              class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all">
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- CUSTOMIZABLE FIELD 6: Customer Notes                          -->
+        <!-- ============================================================= -->
+        <div>
+          <label class="block text-[11px] font-medium text-neutral-500 mb-1 uppercase tracking-wide">Preferences / Notes</label>
+          <textarea 
+            rows="3" 
+            name="customNotes"
+            [(ngModel)]="additionalData.notes"
+            placeholder="Any specific delivery or service instructions..."
+            class="w-full bg-stone-50/60 border border-stone-200 text-neutral-900 text-sm rounded-xl px-3.5 py-2.5 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 transition-all resize-none"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Sheet Footer Actions -->
+      <div class="p-4 sm:p-5 border-t border-stone-100 bg-white flex items-center gap-3">
+        <button 
+          type="button" 
+          (click)="onCloseSheet()" 
+          class="flex-1 py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-neutral-700 text-xs font-medium transition-all cursor-pointer">
+          Cancel
+        </button>
+
+        <button 
+          type="submit" 
+          [disabled]="isSaving()"
+          class="flex-1 py-2.5 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+          @if (isSaving()) {
+            <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <span>Saving...</span>
+          } @else {
+            <span>Save & Finish</span>
+          }
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

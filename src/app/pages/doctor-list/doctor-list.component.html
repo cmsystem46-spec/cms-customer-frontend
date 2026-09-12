@@ -1,0 +1,207 @@
+<div class="min-h-screen bg-slate-50 text-slate-900 pb-20 selection:bg-teal-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      
+      <div class="flex items-center gap-3">
+        <!-- Back Navigation -->
+        <a 
+          [routerLink]="['/', urlPath(), 'departments']"
+          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+          title="Back to Departments">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+            Consultant Physicians
+          </h1>
+          <p class="text-[11px] text-slate-500 truncate">
+            {{ hospital()?.name }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Appointments Link -->
+      <a 
+        [routerLink]="['/', urlPath(), 'appointments']"
+        class="text-xs font-semibold text-slate-600 hover:text-teal-700 transition-colors flex items-center gap-1">
+        <span>My Appointments</span>
+        <span>&rarr;</span>
+      </a>
+
+    </div>
+  </header>
+
+  <!-- Main Doctors Listing Content -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
+
+    <!-- Title & Active Filter Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 text-xs font-bold border border-teal-200/60 mb-1">
+          <span>Step 2 of 2</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Select Your Specialist
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+          Choose a doctor below to open scheduling and reserve your appointment slot.
+        </p>
+      </div>
+
+      <!-- Department Filter Badge -->
+      @if (activeDepartmentName()) {
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-semibold self-start sm:self-auto">
+          <span>Department: <strong>{{ activeDepartmentName() }}</strong></span>
+          <button 
+            type="button" 
+            (click)="clearDepartmentFilter()"
+            class="text-teal-600 hover:text-rose-600 ml-1 font-bold"
+            title="Clear filter">✕</button>
+        </div>
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="py-20 text-center">
+        <div class="inline-block w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-slate-400 mt-2 font-medium">Finding available doctors...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (errorMessage()) {
+      <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between">
+        <span>{{ errorMessage() }}</span>
+        <button type="button" (click)="loadData(urlPath(), activeDepartmentId(), activeDepartmentName())" class="underline font-bold">Retry</button>
+      </div>
+    }
+
+    <!-- Doctors List & Options -->
+    @if (!isLoading() && !errorMessage()) {
+      <div class="space-y-4">
+        
+        <!-- General Consultation Option -->
+        <div class="p-5 bg-gradient-to-r from-teal-500/10 via-emerald-500/5 to-white rounded-3xl border border-teal-200/80 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+              🩺
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-slate-900">General OPD / First Available Doctor</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  Fast Track
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Don't have a specific doctor in mind? Book with any available physician on duty.
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="openBooking(null)"
+            class="px-5 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 cursor-pointer self-start sm:self-auto">
+            Book General Visit
+          </button>
+        </div>
+
+        <!-- Doctors Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (doc of doctors(); track doc._id) {
+            <div class="p-5 bg-white rounded-3xl border border-slate-200/90 shadow-soft hover:shadow-md transition-all flex flex-col justify-between group">
+              <div>
+                <div class="flex items-start gap-4 mb-3">
+                  <!-- Doctor Avatar -->
+                  @if (doc.imageUrl) {
+                    <img 
+                      [src]="apiUrl + '/uploads/' + doc.imageUrl" 
+                      alt="Doctor Photo"
+                      class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-xs shrink-0"
+                      (error)="doc.imageUrl = null">
+                  } @else {
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-xs">
+                      {{ doc.name | slice: 0:2 | uppercase }}
+                    </div>
+                  }
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-1">
+                      <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors truncate">
+                        {{ doc.name }}
+                      </h3>
+                      <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Available
+                      </span>
+                    </div>
+
+                    <p class="text-xs font-semibold text-teal-700 mt-0.5 truncate">
+                      {{ doc.specialization || doc.department }}
+                    </p>
+
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                      {{ doc.department }} &bull; {{ hospital()?.name }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Footer -->
+              <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-xs text-slate-500 font-medium">In-Clinic Consultation</span>
+                
+                <button 
+                  type="button" 
+                  (click)="openBooking(doc)"
+                  class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                  <span>Book Appointment</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+
+        @if (doctors().length === 0) {
+          <div class="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300">
+            <p class="text-xs text-slate-500">No individual doctors found for this filter.</p>
+            <button 
+              type="button" 
+              (click)="openBooking(null)"
+              class="mt-3 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-semibold">
+              Schedule with Any Available Doctor
+            </button>
+          </div>
+        }
+
+      </div>
+    }
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- SLIDE-UP BOOKING BOTTOM SHEET                  -->
+  <!-- ============================================== -->
+  @if (isSheetOpen() && hospital()) {
+    <app-booking-sheet 
+      [hospital]="hospital()!"
+      [doctor]="selectedDoctor()"
+      [department]="selectedDepartment()"
+      [urlPath]="urlPath()"
+      (close)="closeBooking()"
+      (appointmentBooked)="onAppointmentBooked($event)">
+    </app-booking-sheet>
+  }
+
+</div>

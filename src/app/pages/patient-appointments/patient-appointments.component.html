@@ -1,0 +1,54 @@
+<div class="min-h-screen bg-slate-50 text-slate-900 pb-20 selection:bg-teal-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      
+      <div class="flex items-center gap-3">
+        <!-- Back Navigation -->
+        <a 
+          [routerLink]="['/', urlPath()]"
+          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+          title="Back to Clinic Overview">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+            Consultation History
+          </h1>
+          <p class="text-[11px] text-slate-500 truncate">
+            {{ hospital()?.name }}
+          </p>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        (click)="goToBooking()"
+        class="px-3.5 py-1.5 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+        <span>+ Book Visit</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- Content Container -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 pt-8">
+    <app-appointment-history 
+      [hospitalId]="hospital()?._id"
+      (bookNew)="goToBooking()"
+      (requestLogin)="showAuthModal.set(true)">
+    </app-appointment-history>
+  </main>
+
+  <!-- Auth Modal -->
+  @if (showAuthModal()) {
+    <app-auth-modal 
+      (close)="showAuthModal.set(false)">
+    </app-auth-modal>
+  }
+
+</div>
