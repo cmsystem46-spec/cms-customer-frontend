@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://cms-customer-server.onrender.com',
+  apiUrl: 'https://cms-customer-server-njct.onrender.com',
 };
